@@ -1,0 +1,351 @@
+<html>
+
+<head>
+<link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+<meta http-equiv="Content-Language" content="en-us">
+<title>Blue Iris Remote View</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+<meta http-equiv="Page-Enter" content="blendTrans(Duration=0.0)"/><!--Fixes IE Page 'Flicker' -->
+<meta http-equiv="Page-Exit" content="blendTrans(Duration=0.0)"/><!--Fixes IE Page 'Flicker' -->
+
+<script type="text/javascript"> 
+	var mediaWidth = 640;
+	var mediaHeight = 480;
+	var daysago = 0;
+	var camname = "";
+	var inptz = 0;
+	var showalerts = %%SHOWALERTS%%;
+	var autorefresh = false;
+	
+    window.onload = function()
+	{
+		opencam();
+        onWindowResize();
+    }
+    
+    window.onresize = function()
+    {
+        onWindowResize();
+    }
+    
+	function getSession()
+	{
+		var i,x,y,ARRcookies=document.cookie.split(";");
+		for (i=0; i<ARRcookies.length; i++ )
+		{
+			x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+			y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+			x=x.replace(/^\s+|\s+$/g,"");
+
+			if (x=="session")
+			{
+				return unescape(y);
+			}
+		}
+	}
+						
+    function buildParamTag(name, value) {
+        return '<PARAM NAME="' + name + '" VALUE="' + value + '">';
+    }
+    
+    function writeAppletTag() {
+		if (location.protocol == 'https:')
+		{
+			document.writeln('<applet name="LiveVideo" code=BlueIris.class archive="XCast.jar" codebase="https://%%SERVERNAME%%/applet" width="1" height="1">');
+		}
+		else
+		{
+	      	document.writeln('<applet name="LiveVideo" code=BlueIris.class archive="XCast.jar" codebase="http://%%SERVERNAME%%/applet" width="1" height="1">');
+		}    
+    
+        document.writeln(buildParamTag('cache_archive','XCast.jar'));
+        document.writeln(buildParamTag('cache_option','Plugin'));                
+        document.writeln(buildParamTag('StreamIt','1'));                
+        document.writeln(buildParamTag('Session',getSession() ));                
+        document.writeln('</APPLET>');                   
+    }
+
+    function openfile( dest, w, h )
+    {
+		document.all["rowptz"].style.display = 'none';
+		
+		box = document.getElementById('CamList');
+		box.selectedIndex = -1;
+
+		mediaWidth = w;
+		mediaHeight = h;
+		
+		try
+		{
+//			document.LiveVideo.bHideUI = false;
+			document.LiveVideo.changeURL( dest);
+		}
+		catch(er)
+		{
+			alert( "JAVA applet is not installed.");
+		}
+			
+		onWindowResize();
+    }
+    
+    function onWindowResize()
+    {
+        var isIE = Number(navigator.appName.indexOf('Internet Explorer')) != -1;
+        var content_offset_w = 324 + 24; 
+        var content_offset_h = 42 + 24; // + (isIE ? 3:0);
+        
+		if( document.all["rowptz"].style.display != 'none' )
+			content_offset_h += 30;
+
+		var myWidth = 0, myHeight = 0;
+		if( typeof( window.innerWidth ) == 'number' ) {
+			//Non-IE
+			myWidth = window.innerWidth;
+			myHeight = window.innerHeight;
+		} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+			//IE 6+ in 'standards compliant mode'
+			myWidth = document.documentElement.clientWidth;
+			myHeight = document.documentElement.clientHeight;
+		} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+			//IE 4 compatible
+			myWidth = document.body.clientWidth;
+			myHeight = document.body.clientHeight;
+		}
+		
+		var winWidth = myWidth;
+		var winHeight = myHeight;
+		
+        if( myWidth>content_offset_w && myHeight>content_offset_h )
+        {
+         	myWidth -= content_offset_w;
+         	myHeight -= content_offset_h;
+         
+//			if( mediaWidth>=640 && mediaHeight <=288 )	// eg, single field 640x240
+//				mediaHeight *= 2;
+
+			var r = mediaWidth/mediaHeight;
+
+			if( myHeight*r < myWidth )
+			{
+				myWidth = myHeight*r;
+			}
+			else
+			{
+				myHeight = myWidth /r;
+			}
+
+			document.LiveVideo.width = myWidth;
+			document.LiveVideo.height = myHeight;
+		}
+		
+		I1.onWindowResize();
+    }
+    
+	function changeLinkHref(id,newHref)
+	{
+	    if( document.getElementById)
+	    {
+			document.getElementById(id).href = newHref;
+	    }
+	    else if( document.all )
+	    {
+			document.all[id].href = newHref;
+	    }
+	    else if( document.links.length > 0)
+		{
+	//      var index = findLinkByHref(oldHref);
+	//      if (index > -1)
+	//        document.links[index].href = newHref;
+		}
+	}
+
+	function opencam()
+	{
+		box = document.getElementById('CamList');
+		if( box.selectedIndex < 0 )
+			return;
+			
+		destination = box.options[box.selectedIndex].value;
+		
+		if( !destination || destination=="off" )
+		{
+			mediaWidth = 640;
+			mediaHeight = 480;
+			
+			try
+			{
+	//			document.LiveVideo.changeURL( parts[3] );
+			}
+			catch(er)
+			{
+				alert( "JAVA applet is not installed.");
+			}
+		}
+		else 
+		{
+			parts = destination.split(";");
+			
+			if( parts[0]=="wmv" )
+			{
+				mediaWidth = Number(parts[1]);
+				mediaHeight = Number(parts[2]);
+				
+			}
+			else
+			if( parts[0]=="jpg" )
+			{
+				mediaWidth = Number(parts[1]);
+				mediaHeight = Number(parts[2]);
+									
+				bits = parts[5];
+				pieces = parts[3].split("/");
+				camname = pieces[3];
+				
+				if (location.protocol == 'https:')
+				{
+				   camname = camname.replace(/^http:/, 'https:');
+				}
+				
+//				changeLinkHref( "preset1", "./cam/" + pieces[3] + "/pos=8" );
+//				changeLinkHref( "preset2", "./cam/" + pieces[3] + "/pos=9" );
+//				changeLinkHref( "preset3", "./cam/" + pieces[3] + "/pos=10" );
+//				changeLinkHref( "preset4", "./cam/" + pieces[3] + "/pos=11" );
+//				changeLinkHref( "preset5", "./cam/" + pieces[3] + "/pos=12" );
+				
+				if( bits & 2 )
+					document.all["rowptz"].style.display = '';
+				else
+					document.all["rowptz"].style.display = 'none';
+					
+				I1.location = "./cliplist.htm?cam=" + camname + "&alerts=" + showalerts;
+				
+				try
+				{
+//					document.LiveVideo.bHideUI = false;
+//					document.LiveVideo.changeURL( parts[3] + ";" + parts[5] + ";%%AUTHORIZATION%%" );
+					document.LiveVideo.changeURL( parts[3] );
+				}
+				catch(er)
+				{
+					alert( "JAVA applet is not installed.");
+				}
+			}		
+		}
+
+		onWindowResize();
+
+//		I1.document.getElementById('ClipList').selectedIndex = -1;
+	}
+
+ 	function OnPTZ( pos, down )
+ 	{
+ 	// event.SrcElement.id	could be used instead of passing the pos ...
+ 	
+	 	if( down ) {
+	 		inptz= 1;
+	 		new Image().src = "/cam/" + camname + "/pos=" + pos +"?updown=1&" + new Date().getTime();
+		}
+		else
+	 	if(inptz>0) {
+	 		inptz= 0;			
+	 		new Image().src = "/cam/" + camname + "/pos=" + pos +"?updown=2&" + new Date().getTime();
+		}
+ 	}
+	
+ 	function OnPTZPreset( pos )
+ 	{
+ 	// event.SrcElement.id	could be used instead of passing the pos ...
+ 	
+ 		new Image().src = "/cam/" + camname + "/pos=" + pos + "?" + new Date().getTime();
+ 	}
+	
+</script>
+
+</head>
+
+<body background="background.jpg" >
+
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" height="100%">
+	<tr>
+		<td height="30">
+			<p align="center" style="margin-top: 0; margin-bottom: 1px">
+			<font color="#FFFFFF"><font face="Tahoma" size="4"><b>
+			Blue Iris&nbsp;</b></font><font face="Tahoma" size="2">(JAVA/JPEG on %%SERVERNAME%%)&nbsp;&nbsp; </font>
+			</font>
+			<font face="Tahoma" size="1">
+			<a target="new" href="http://www.java.com/"><font color="#FFFFFF">get JAVA now</font></a><font color="#FFFFFF">&nbsp;&nbsp; 
+			</font> </font><font face="Tahoma" size="2">
+			<font color="#FFFFFF">&nbsp;</font><a href="jpegpull.htm"><font color="#FFFFFF">go to JPEG Refresh viewer</font></a><font color="#FFFFFF">&nbsp; &nbsp;</font><a href="/logout.htm"><font color="#FFFFFF">logout</font></a></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td>
+		<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" height="100%">
+			<tr>
+				<td width="324" height="100%">
+				<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" height="100%">
+					<tr>
+						<td id="row1" height="20" bgcolor="#425963" style="border-style: outset; border-width: 1px"><b>
+						<font face="Tahoma" color="#FFFFFF">&nbsp;Cameras</font></b></td>
+					</tr>
+					<tr>
+						<td id="row2" height="158">
+							<p align="center">
+							<select size="8" id="CamList" name="CamList" onclick="if( this.selectedIndex<0 ) this.selectedIndex=0;" onChange="opencam()" WIDTH="312" style="width: 312px; font-family: Courier; font-size: 10pt">%%CAMLIST%%
+							</select>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<td id="iframerow" height="100%" bgcolor="#FFFFFF">
+						<iframe id="I1" name="I1" src="./cliplist.htm?cam=~" width="100%" height="100%" marginwidth="0" marginheight="0" scrolling="no" border="0" frameborder="0">
+						Your browser does not support inline frames or is currently configured not to display inline frames.
+						</iframe>
+						</td>
+					</tr>
+				</table>
+				</td>
+				<td  bgcolor="#000000" height="100%" id="cell_video" style="border-style: outset; border-width: 1px">
+					<p align="center">
+					<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%"  height="100%" id="AutoNumber2">
+						<tr>
+						<td>
+						<p align="center">
+					        <SCRIPT LANGUAGE="JavaScript">
+					            writeAppletTag();
+					        </SCRIPT>
+						</p>
+						</td>
+						</tr>
+						
+						<tr id="rowptz" style='display: none'>
+						<td bgcolor="#DBDCDE" height="30">
+							<p align="left">
+							<A onMouseDown="OnPTZ(0,true)" onMouseUp="OnPTZ(0,false)" id="panleft"><img border="0" src="left.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZ(1,true)" onMouseUp="OnPTZ(1,false)" id="panright"><img border="0" src="right.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZ(2,true)" onMouseUp="OnPTZ(2,false)" id="tiltup"><img border="0" src="up.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZ(3,true)" onMouseUp="OnPTZ(3,false)" id="tiltdown"><img border="0" src="down.png" width="24" height="23" hspace="1"></A>		
+							<A onMouseDown="OnPTZ(5,true)" onMouseUp="OnPTZ(5,false)" id="zoomin"><img border="0" src="zoomin.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZ(6,true)" onMouseUp="OnPTZ(6,false)" id="zoomout"><img border="0" src="zoomout.png" width="24" height="23" hspace="1"></A>
+		
+							<A onMouseDown="OnPTZPreset(8)" target=retframe id="preset1"><img border="0" src="preset1.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZPreset(9)" target=retframe id="preset2"><img border="0" src="preset2.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZPreset(10)" target=retframe id="preset3"><img border="0" src="preset3.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZPreset(11)" target=retframe id="preset4"><img border="0" src="preset4.png" width="24" height="23" hspace="1"></A>
+							<A onMouseDown="OnPTZPreset(12)" target=retframe id="preset5"><img border="0" src="preset5.png" width="24" height="23" hspace="1"></A>
+						</td>
+						</tr>
+						
+					</table>
+					</p>
+				</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+
+<iframe id="retframe" name="retframe" width="0" height="0"></iframe>
+</body>
+</html>

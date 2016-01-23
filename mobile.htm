@@ -1,0 +1,474 @@
+<!-- saved from url=(0022)http://internet.e-mail -->
+<html>
+<head>    
+<style>
+label {display:block;}
+label:hover {background-color:#eeeeff;}  
+</style>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+<meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" />
+<meta name="HandheldFriendly" content="True" />
+<title>Blue Iris Mobile</title>
+<script type="text/javascript">
+
+//javascript changes by Jeffry Ratcliff, base on iphone.htm
+//http://www.linkedin.com/pub/jeffry-ratcliff/0/438/216
+
+
+// IE does not support indexOf
+if (!Array.indexOf)
+{
+  Array.prototype.indexOf = function (obj, start)
+  {
+    for (var i = (start || 0); i < this.length; i++)
+    {
+      if (this[i] == obj)
+      {
+        return i;
+      }
+    } // for
+    return -1;
+  } // function
+} // array does not support indexOf
+
+// IE does not support string.split
+if ( !String.split )
+{
+  String.prototype.split = function(token)
+  {
+    var arr = []; // return this
+    var str = ''; // current token from parsed values        
+    
+    for (var i = 0; i < this.length; i++)
+    {
+      if ( token == this.charAt(i) )
+      {
+        arr.push(str);
+        str = '';
+      }
+      else
+      {
+        str += this.charAt(i);
+      }
+    }
+    if ( str.length > 0 )
+    {
+      arr.push(str);
+    }
+    return arr;
+ }
+}
+
+var timerID = null;
+var timerRunning = false;
+var ringcounter = 0;
+var ringOffset = 0;
+var totalcounter = 0;
+var lastcounter = 0;
+var winWidth = 0;
+var winHeight = 0;
+var camName = 'http://%%SERVERNAME%%/image/index';
+var baseTime = new Date().getTime();
+var pauseTime = 0;
+var archive_list = []; // list of all clips, filename
+
+function onPrint()
+{
+  pwin = window.open(document.getElementById("webcam").src,"_blank");
+  pwin.onload = function () {window.print();}  
+}
+
+function onArchive()
+{
+  var live = document.getElementById("row_live");
+  var archive = document.getElementById("row_archive");
+  
+  archive.style.display = '';
+  live.style.display = 'none';
+  onUpdateArchiveCamera();
+  document.title = "Blue Iris Mobile : Archive";
+}
+function onLive()
+{
+  var live = document.getElementById("row_live");
+  var archive = document.getElementById("row_archive");
+  archive.style.display = 'none';
+  live.style.display = '';
+  changecam();
+  document.title = "Blue Iris Mobile : Live";
+}
+
+function getWinWidth()
+{
+  /* This script and many more are available free online at
+    The JavaScript Source!! http://javascript.internet.com
+    Created by: Konstantin Jagello | http://javascript-array.com/ */
+  winWidth  = document.compatMode=='CSS1Compat' && !window.opera?document.documentElement.clientWidth:document.body.clientWidth;
+  winHeight = document.compatMode=='CSS1Compat' && !window.opera?document.documentElement.clientHeight:document.body.clientHeight;
+  
+  return [winWidth,winHeight];
+}
+
+function ckstatus()
+{
+  if( totalcounter == lastcounter )
+  {
+    // hung? restart.
+    showtime();
+  }
+  else
+  {
+    lastcounter = totalcounter;
+  }
+  setTimeout( "ckstatus()",10000 );       // 10 seconds
+}
+
+function stopclock()
+{
+  if(timerRunning)
+    clearTimeout(timerID);
+  timerRunning = false;
+}
+
+function parseClipFileName(file_path)
+{
+  var parts = file_path.split('/')
+  if ( parts.length > 1 )
+  {
+    // remove the file ext
+    var name_parts = parts[parts.length-1].split('.');
+    var name = null;
+    
+    if ( name_parts.length == 3 )
+    {
+      // need to handle default name
+      // CAM.YYYYMMDD_HHMMSS.ext
+      name = (name_parts[0] +'_'+ name_parts[1]).split('_')
+    }
+    else
+    { // handle seperator _
+      name = parts[parts.length-1].split('.')[0].split('_')
+    }
+    
+    // make sure we got a good parse
+    if ( name.length == 3 )
+    {    
+      // now parse it!!
+      var day    = "?";
+      var tm     = "?";
+      var camera = "?";
+      
+      for(var j=0;j<name.length;j++)
+      {
+        if ( parseInt(name[j]) >= 0 )
+        {
+          // is a number
+          if ( name[j].length == 8 )
+          {
+            day = name[j].substring(0,4) + '-' + name[j].substring(4,6) + "-" + name[j].substring(6,8)
+            // assume YYYYMMDD
+          }
+          else if ( name[j].length == 6 )
+          {
+            // assuming HHMMSS
+            tm = name[j].substring(0,2) + ':' + name[j].substring(2,4) + ":" + name[j].substring(4,6)
+          }
+        }
+        else
+        {
+          camera = name[j]
+        }
+      } // for j
+      return [file_path,day,tm,camera];
+    } // if ( name.length == 3 )
+  }
+  return [];
+}
+
+function startclock()
+{
+  var box = document.getElementById("CamList");
+  var archiveCameraList = document.getElementById('CameraArchive');
+  var archive_camera_list = [];
+  
+  onImageClick();
+  box.selectedIndex = 0;
+  changecam();
+
+  setTimeout( "ckstatus()",10000 );     // 10 seconds
+  showtime();
+  // fix the clip list name
+  var clips_select = document.getElementById('ClipList');
+  // hide the clip list
+  clips_select.style.display = 'none';
+  
+  for(var i=0;i<clips_select.length;i++)
+  {
+    // fix the text if possible
+    var file_name_values = parseClipFileName(clips_select[i].value);
+    
+    if( file_name_values.length > 0 )
+    {
+      var file   = file_name_values[0];
+      var day    = file_name_values[1];
+      var tm     = file_name_values[2];
+      var camera = file_name_values[3]
+      
+      // add the camera to the selection box for achive
+      if ( archive_camera_list.indexOf(camera) == -1)
+      {
+        archive_camera_list.push(camera)
+      }
+      // add the clip to a list
+      archive_list.push( clips_select[i].value ); 
+      //clips_select[i].text = camera + " " + day + " " + tm;
+      clips_select[i].text = day + " " + tm + " " + camera;
+    } // valid file path
+  } // for j
+
+  archiveCameraList.options.length = 0; // remove all options
+  for(var i=0;i<archive_camera_list.length;i++)
+  {    
+    var newCameraOption = document.createElement('option');
+    
+    camera = archive_camera_list[i];
+    newCameraOption.text  = camera;
+    newCameraOption.value = camera;
+    archiveCameraList.add(newCameraOption);
+  }
+  if ( archiveCameraList.options.length > 0 )
+  {
+    archiveCameraList.options.selectedIndex = 0;    
+  }
+
+  archive_list.reverse();
+  onLive();  
+}
+function onUpdateArchiveCamera()
+{
+  var archiveCameraList = document.getElementById('CameraArchive');
+  var archiveDayList = document.getElementById('DayArchive');
+  var archiveClipList = document.getElementById('ClipListArchive');
+  
+  var selectedCamera = archiveCameraList.options[archiveCameraList.selectedIndex].value;
+  
+  // start clean
+  archiveDayList.options.length = 0;
+  archiveClipList.options.length = 0;
+  
+  var days = []
+  
+  for(var i=0;i<archive_list.length;i++)
+  {
+    var file_name_values = parseClipFileName(archive_list[i]);
+    
+    if( file_name_values.length > 0 && selectedCamera == file_name_values[3])
+    {
+      var file   = file_name_values[0];
+      var day    = file_name_values[1];
+      var tm     = file_name_values[2];
+      var camera = file_name_values[3]
+
+      if ( days.indexOf(day) == -1 )
+      {
+        var newOption = document.createElement('option');
+        newOption.text = day;
+        newOption.value = day;
+        archiveDayList.add(newOption);
+        archiveDayList.selectedIndex = 0;
+        // keep update and it will selected the new new est day
+        // only set if null and will selected the oldest day
+        selectedDay = day;
+        days.push(day);
+      }
+    } //parse worked
+  }// for
+  // set the default selected day
+  archiveDayList.selectedIndex = archiveDayList.options.length-1;
+  onUpdateArchiveDay();
+}
+function onUpdateArchiveDay()
+{
+  var archiveCameraList = document.getElementById('CameraArchive');
+  var archiveDayList = document.getElementById('DayArchive');
+  var archiveClipList = document.getElementById('ClipListArchive');
+  
+  var selectedCamera = archiveCameraList.options[archiveCameraList.selectedIndex].value;
+  var selectedDay    = archiveDayList.options[archiveDayList.selectedIndex].value;
+  
+  // start clean
+  archiveClipList.options.length = 0;
+  for(var i=0;i<archive_list.length;i++)
+  {
+    var file_name_values = parseClipFileName(archive_list[i]);
+    
+    if( file_name_values.length > 0 && selectedCamera == file_name_values[3] )
+    {
+      var file   = file_name_values[0];
+      var day    = file_name_values[1];
+      var tm     = file_name_values[2];
+      var camera = file_name_values[3]
+
+      if( selectedDay == day )
+      {
+        // add time
+        var newOption = document.createElement('option');
+        newOption.text = tm;
+        newOption.value = file;      
+        archiveClipList.add(newOption);
+      }
+    } // if match
+  }// for
+  // set the default clip be the newest clip
+  archiveClipList.selectedIndex = archiveClipList.options.length -1;
+  onPlayArchiveClip();
+}
+
+function onPlayArchiveClip()
+{
+  var archiveClipList = document.getElementById('ClipListArchive');
+  if ( archiveClipList.selectedIndex != -1 )
+  {
+    var file = archiveClipList.options[archiveClipList.selectedIndex].value;
+    
+    pauseTime = 0;
+    baseTime = new Date().getTime();
+    if ( file.length > 0 )
+    {
+      //file == http://10.0.1.2/clips/20111003_194549_Twins.wmv
+      //        http://10.0.1.2/'file/clips'/20111002_202353_Driveway.wmv
+      camName = file.replace('clips','file/clips')
+    }
+    else
+    {
+      alert('Could not play the clip, no file name');
+    }
+  }
+  else
+  {
+    alert('Could not play the clip, clip not selected');
+  }
+}
+function doimage()
+{
+  // yield briefly between requests
+  timerID = setTimeout( "showtime()",25 );
+  timerRunning = true;
+}
+
+function onImageClick()
+{
+  if ( ringOffset <= 0 )
+  {
+    ringOffset = 250;
+  }
+  else
+  {
+    ringOffset = 0;
+  }  
+}
+
+function showtime()
+{
+  stopclock();
+                  
+  totalcounter++;
+  
+  var color = document.getElementById('table_source');
+
+  if ( ringOffset == 0  )
+  {
+    doimage(); // keep the time going
+    document.body.style.background = "red";
+    
+    if( pauseTime==0 )
+        pauseTime = (new Date().getTime());
+    
+    return;
+  }
+  else
+  {
+    document.body.style.background = "#339999";    
+    
+    if( pauseTime )
+    {
+    	baseTime += (new Date().getTime() - pauseTime);
+    	pauseTime = 0;
+    }
+  }
+  
+  ringcounter ++;
+  if( ringcounter > 3000 )
+  {
+    ringcounter = 0;
+  }
+  // update width and height
+  document.images.webcam.onload = doimage;
+  if ( camName.length > 0 )
+  {
+    var wh = getWinWidth();  
+    var rc = camName;
+    
+    // fix padding
+    wh[0] -= 2;
+    wh[1] -= (document.getElementById('table_source').offsetHeight * 2 );
+    // remove for the body padding
+    var w = Math.floor(Math.min(wh[0],Math.floor(wh[1]*1.33334))) - 2;
+    
+    
+    document.images.webcam.src = rc + "?w="+ w + "&time=" + (new Date().getTime() - baseTime) ;
+    // document.images.webcam.src = rc + "?w="+ w + "&time=" + (ringcounter*ringOffset) ;
+  }
+}
+
+function changecam()
+{
+  var box = document.getElementById("CamList");
+  var clipList = document.getElementById('ClipList');
+  
+  pauseTime = 0;
+  baseTime = new Date().getTime();
+  if( box.selectedIndex>=0 && box.options[box.selectedIndex].value.length > 0 )
+  {
+    camName = "http://%%SERVERNAME%%/image/"+ box.options[box.selectedIndex].value;
+  }
+  clipList.selectedIndex = clipList.length - 1;
+}
+//-->
+</script>
+</head>
+<body onLoad="startclock();" topmargin="1" leftmargin="1" rightmargin="1" bottommargin="1" >
+  <table width="100%" id='table_source'>
+    <tr id="row_live">
+      <td><a href="javascript:onArchive()">Goto Archive</a></td>
+      <td align="left"><select class="optionList" name="CamList" id="CamList" onchange="changecam();">
+        %%CAMLIST2%%
+        <option value="" selected="selected"></option>
+      </select>
+      </td>
+      <td >
+      <select class="optionList" name="ClipList" id="ClipList" onchange='changeclip()'>
+        %%CLIPLIST%%
+      </select>
+      </td>      
+    </tr>
+    <tr id="row_archive">
+      <td><a href="javascript:onLive()">Live</a></td>
+      <td><select class="optionList" name="CameraArchive"   id="CameraArchive"   onchange='onUpdateArchiveCamera()'></select></td>
+      <td><select class="optionList" name="DayArchive"      id="DayArchive"      onchange='onUpdateArchiveDay()'></select></td>
+      <td><select class="optionList" name="ClipListArchive" id="ClipListArchive" onchange='onPlayArchiveClip()'></select></td>
+    </tr>
+  </table>  
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber1" name="AutoNumber1">
+  <tr>
+    <td width="100%"><p align="center">
+      <IMG border=0 SRC="http://%%SERVERNAME%%/image/index" name="webcam" id="webcam" style="display:block; margin-left:auto; margin-right:auto;" onclick="onImageClick()">
+    </p></td>
+  </tr>
+  <tr>
+    <td><a href="javascript:onPrint();">Print</a></td>
+  </tr>
+  </table>
+</body>
+</html>
