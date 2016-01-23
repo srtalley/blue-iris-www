@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	<meta name="viewport" content="width=1000, initial-scale=1" />
+	<title>UI2 - Blue Iris</title>
+	<script src="ui2/jquery-1.11.3.min.js" type="text/javascript"></script>
+	<script src="ui2/jquery.cookie.js" type="text/javascript"></script>
+	<script src="ui2/jquery.mousewheel.js" type="text/javascript"></script>
+	<script src="ui2/jquery.longpress.js" type="text/javascript"></script>
+	<script src="ui2/jquery.ui2modal.js" type="text/javascript"></script>
+	<script src="ui2/md5.js" type="text/javascript"></script>
+	<link href="ui2/toastr.min.css" rel="stylesheet" type="text/css">
+	<script src="ui2/toastr.min.js" type="text/javascript"></script>
+	<link href="ui2/wdContextMenu/contextmenu.css" rel="stylesheet" type="text/css">
+	<script src="ui2/wdContextMenu/jquery.contextmenu.js" type="text/javascript"></script>
+	<script src="ui2/ui2-util.js" type="text/javascript"></script>
+	<script src="ui2/ui2.js" type="text/javascript"></script>
+	<link href="ui2/ui2.css" rel="stylesheet" type="text/css">
+	<script src="ui2/ui2-local-overrides.js" type="text/javascript"></script>
+	<link href="ui2/ui2-local-overrides.css" rel="stylesheet" type="text/css">
+	<script type="text/javascript">
+		var ui2_version = "0.9.7";
+		$(function ()
+		{
+			$("#ui2_version_label").html(ui2_version);
+			if (typeof (Storage) !== "undefined")
+			{
+				if (settings.ui2_lastLoadedVersion != ui2_version)
+				{
+					settings.ui2_lastLoadedVersion = ui2_version;
+					location.reload(true);
+				}
+			}
+		});
+	</script>
+	<!--[if lte IE 7]>
+		<style type="text/css">
+			.inlineblock
+			{
+				display: inline;
+				zoom: 1;
+			}
+		</style>
+	<![endif]-->
+</head>
+<body>
+	<div id="loadingmsgwrapper" style="position: absolute; width: 100%; height: 100%;
+		background-color: rgba(0,0,0,0.75); z-index: 999999;">
+		<div style="position: absolute; left: 50%; top: 50%;">
+			<div id="loadingmsg">
+				<img src="ui2/ajax-loader-big.gif" alt="Loading ..." /><br />
+				<div class="inlineblock loadinglabel">
+					Loading Web Content...
+				</div>
+				<div id="loadingWebContent" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+				<div class="inlineblock loadinglabel">
+					Loading Server Status...
+				</div>
+				<div id="loadingServerStatus" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+				<div class="inlineblock loadinglabel">
+					Checking Session Status...
+				</div>
+				<div id="loadingLogin" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+				<div class="inlineblock loadinglabel">
+					Loading Camera List...
+				</div>
+				<div id="loadingCameraList" class="inlineblock loadingstatus">
+					BUSY
+				</div>
+				<br />
+			</div>
+		</div>
+	</div>
+	<div id="layouttop">
+		<div id="logoutbtnwrapper" class="inlineblock">
+			<img id="btnOptions" class="littleTopBtn" alt="Options" src="ui2/settings_mask48.png" title="UI2 Options" onclick="openOptionsDialog()" />
+			<input type="button" id="btnLogout" class="button" value="Log Out" onclick="logout()" />
+		</div>
+		<div id="logo" class="inlineblock" onclick="openAboutDialog()" title="About UI2">
+			<div id="system_name" class="inlineblock">%%SYSNAME%%</div>
+			<div id="fallback_logo" class="inlineblock" style="display: none"><img id="logoImg" src="ui2/logo.png" alt="" /><div id="logotext" class="inlineblock">UI2</div></div>
+		</div>
+		<img id="audio_icon" class="bigTopBtn" src="ui2/high96.png" alt="Audio" onclick="audioToggle()" style="display: none" title="Toggle Audio Playback" />
+		<div id="ptz_pt_wrapper" class="inlineblock" style="display: none">
+			<img class="ptzbtn_blank" src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt=" " />
+			<img class="ptzbtn" ptzcmd="2" src="ui2/up48.png" alt="^" />
+			<img class="ptzbtn_blank" src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt=" " />
+			<img class="ptzbtn" ptzcmd="0" src="ui2/left48.png" alt="<" />
+			<img class="ptzbtn" ptzcmd="3" src="ui2/down48.png" alt="v" />
+			<img class="ptzbtn" ptzcmd="1" src="ui2/right48.png" alt=">" />
+		</div>
+		<div id="ptz_z_wrapper" class="inlineblock" style="display: none">
+			<img class="ptzbtn" ptzcmd="5" src="ui2/zoom_in48.png" alt="+" />
+			<img class="ptzbtn" ptzcmd="6" src="ui2/zoom_out48.png" alt="-" />
+		</div>
+		<div id="ptz_presets_1_wrapper" class="inlineblock" style="display: none">
+			<div class="inlineblock ptzpreset" presetnum="1"></div>
+			<div class="inlineblock ptzpreset" presetnum="2"></div>
+			<div class="inlineblock ptzpreset" presetnum="3"></div>
+			<div class="inlineblock ptzpreset" presetnum="4"></div>
+			<div class="inlineblock ptzpreset" presetnum="5"></div>
+			<div class="inlineblock ptzpreset" presetnum="6"></div>
+			<div class="inlineblock ptzpreset" presetnum="7"></div>
+			<div class="inlineblock ptzpreset" presetnum="8"></div>
+			<div class="inlineblock ptzpreset" presetnum="9"></div>
+			<div class="inlineblock ptzpreset" presetnum="10"></div>
+		</div>
+		<div id="ptz_presets_2_wrapper" class="inlineblock" style="display: none">
+			<div class="inlineblock ptzpreset" presetnum="11"></div>
+			<div class="inlineblock ptzpreset" presetnum="12"></div>
+			<div class="inlineblock ptzpreset" presetnum="13"></div>
+			<div class="inlineblock ptzpreset" presetnum="14"></div>
+			<div class="inlineblock ptzpreset" presetnum="15"></div>
+			<div class="inlineblock ptzpreset" presetnum="16"></div>
+			<div class="inlineblock ptzpreset" presetnum="17"></div>
+			<div class="inlineblock ptzpreset" presetnum="18"></div>
+			<div class="inlineblock ptzpreset" presetnum="19"></div>
+			<div class="inlineblock ptzpreset" presetnum="20"></div>
+		</div>
+		<div id="stoplight" class="inlineblock">
+			<img id="stoplightred" alt="R" src="ui2/RedLight96.png" style="display: none; height: 48px;" title="Blue Iris' stoplight state is RED" />
+			<img id="stoplightgreen" alt="G" src="ui2/GreenLight96.png" style="display: none; height: 48px;" title="Blue Iris' stoplight state is GREEN" />
+			<img id="stoplightyellow" alt="Y" src="ui2/YellowLight96.png" style="display: none; height: 48px;" title="Blue Iris' stoplight state is YELLOW" />
+		</div>
+		<div id="quality" class="inlineblock" style="display: none;">
+			<img id="quality_high" class="bigTopBtn" alt="HQ" src="ui2/scenery_high96.png" style="display: none;" title="Image quality is high" />
+			<img id="quality_low" class="bigTopBtn red" alt="LQ" src="ui2/scenery_low96.png" style="display: none;" title="Image quality is low" />
+		</div>
+		<div id="cpumem" class="inlineblock topbarinfo">
+			CPU: <span id="cpuusage"></span>
+			<br />
+			MEM: <span id="memusage"></span>
+		</div>
+		<div id="schedule_lock_wrapper" class="inlineblock topbarinfo_notopoffset">
+			<div id="schedule_lock_button" class="schedule_lock"><img id="schedule_lock_overlay" src="ui2/refresh44x94.png" style="width:22px;height:47px" alt="hold" /></div>
+		</div>
+		<div id="profile_wrapper" class="inlineblock topbarinfo_nooffsets">
+			<div class="inlineblock profilebtn" profilenum="0" title="Inactive profile">~</div>
+			<div class="inlineblock profilebtn" profilenum="1" title="Profile 1">1</div>
+			<div class="inlineblock profilebtn" profilenum="2" title="Profile 2">2</div>
+			<div class="inlineblock profilebtn" profilenum="3" title="Profile 3">3</div>
+			<div class="inlineblock profilebtn" profilenum="4" title="Profile 4">4</div>
+			<div class="inlineblock profilebtn" profilenum="5" title="Profile 5">5</div>
+			<div class="inlineblock profilebtn" profilenum="6" title="Profile 6">6</div>
+			<div class="inlineblock profilebtn" profilenum="7" title="Profile 7">7</div>
+		</div>
+		<div id="schedule_wrapper" class="inlineblock topbarinfo">
+			<div class="heading">Schedule:</div>
+			<div id="selectedSchedule" class="inlineblock dropdown_header" onclick="PopulateScheduleSelector(); LoadDropdownList('selectedSchedule', 'scheduleselector');" title="Select a different &quot;global schedule&quot; preset, if you have configured more than one."></div>
+		</div>
+		<div id="diskinfo" class="inlineblock topbarinfo">
+		</div>
+		<div id="fpsCounter" class="inlineblock topbarinfo">
+		</div>
+		<div id="homegroup_wrapper" class="inlineblock topbarinfo">
+			<div class="heading">Current Camera:</div>
+			<div id="selectedCameraName" class="inlineblock dropdown_header" onclick="PopulateHomegroupSelector(); LoadDropdownList('selectedCameraName', 'homegroupselector');" title="Select a new &quot;home group&quot;"></div>
+		</div>
+		<div id="save_snapshot_wrapper" class="inlineblock">
+			<a id="save_snapshot_btn" href="javascript:void(0)" onclick="saveSnapshot()">
+				<img class="bigTopBtn" alt="Save Snapshot" src="ui2/save_snapshot96.png" title="Download a frame to disk" />
+			</a>
+		</div>
+		<div id="playback_controls">
+			<div id="playback_seekbar" title="Seek Bar">
+				<div id="playback_seekbar_track">
+				</div>
+				<div id="playback_seekbar_handle">
+					<div id="playback_seekbar_handle_above">
+					</div>
+					<div id="playback_seekbar_handle_below">
+					</div>
+				</div>
+			</div>
+			<div id="playback_buttons">
+				<img class="playback_control_btn" id="playback_playpause" src="ui2/pause48.png" alt="P" title="Play/Pause" onclick="Playback_PlayPause()" style="margin-left: 5px;" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" id="playback_reverse" src="ui2/fastforward48.png" alt="R" title="Forward/Reverse Playback" onclick="Playback_Reverse()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" id="playback_loop" src="ui2/loop48.png" alt="L" title="Toggle Looping" onclick="Playback_Loop_Toggle()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" id="playback_autoplay" src="ui2/squares48.png" alt="L" title="Toggle automatic playback of next clip" onclick="Playback_AutoPlay_Toggle()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<img class="playback_control_btn" src="ui2/slow48.png" alt="S" title="Slow Down" onclick="Playback_SlowDown()" />
+				<img class="playback_control_btn" src="ui2/fast48.png" alt="F" title="Speed Up" onclick="Playback_SpeedUp()" />
+				<div id="playback_separator" class="inlineblock"></div>
+				<div class="playback_textarea inlineblock">
+					<div id="playback_position" class="inlineblock" title="Playback position"></div>
+					<div id="playback_speed" class="inlineblock" title="Playback speed">1x</div>
+					<div id="playback_remaining" class="inlineblock" title="Time remaining"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="layoutleft">
+		<div id="clipsheading">
+			Clips
+		</div>
+		<div id="clipstools">
+			<img id="btn_alerts" class="selected" src="ui2/exclamation40.png" alt="[!]" title="Load Fresh Alerts" onclick="LoadClips('alertlist', 'preserve_current_clipgroup')" />
+			<img id="btn_clips" src="ui2/movie40.png" alt="[C]" title="Load Fresh Clips" onclick="LoadClips('cliplist', 'preserve_current_clipgroup')" />
+			<div class="inlineblock divider">
+			</div>
+			<div id="clipsCameraName" class="inlineblock dropdown_header" onclick="PopulateClipsCameraSelector(); LoadDropdownList('clipsCameraName', 'clipscameraselector');"></div>
+			<input type="button" id="btnGoLive" class="button" value="Go Live" onclick="goLive()" style="display: none;" />
+			<img id="btn_autoLoadClipList" src="ui2/surveillance40.png" alt="[S]" title="Automatically list clips from current live camera" onclick="ToggleAutoLoadClipList()" />
+			<div id="clipstools_clearboth"></div>
+		</div>
+		<div id="clipsbody">
+			<img src="ui2/ajax-loader-clips.gif" alt="Loading ..." style="margin: 20px" />
+		</div>
+	</div>
+	<div id="layoutbody">
+		<img id="camimg" src="" alt="" />
+		<canvas id="camimg_canvas" style="display:none;">Your browser does not support HTML5 canvas.</canvas> <!-- This canvas is shown to the user when the canvas option is enabled. -->
+		<!--<canvas id="camimg_jpegdiff_canvas" style="display:none;"></canvas>--><!-- This canvas holds the latest unfiltered image for my jpegdiff algorithm. -->
+		<!--<canvas id="camimg_jpegdiff_diffframe_canvas" style="display:none;"></canvas>--><!-- This canvas holds the latest diff frame for my jpegdiff algorithm. -->
+	</div>
+	<div id="layoutdivider">
+	</div>
+	<div id="scheduleselector" class="dropdown_list">
+	</div>
+	<div id="homegroupselector" class="dropdown_list">
+	</div>
+	<div id="clipscameraselector" class="dropdown_list">
+	</div>
+	<div id="preloadcontainer" style="display: none">
+		<img src="ui2/LoadingSmall.png" />
+		<img src="ui2/ajax-loader-small.gif" />
+		<img src="ui2/nothumb.jpg" />
+		<img src="ui2/ajax-loader-clips.gif" />
+		<img src="ui2/high96.png" />
+		<img src="ui2/mute96.png" />
+		<img src="ui2/hold44x94.png" />
+		<img src="ui2/clock44x94.png" />
+		<img src="ui2/play48.png" />
+		<img src="ui2/rewind48.png" />
+	</div>
+	<div id="zoomhint" style="display: none">
+	</div>
+	<div id="loginDialog" style="display: none">
+		<div class="title">Administrator Login</div>
+		<div style="margin-top: 5px;">An administrator session is required to access this feature.  Please log in, then try your action again:</div>
+		<div class="section">User: <input type=" text" id="txtUserName" placeholder="Username" /></div>
+		<div style="margin-top: 5px;">Pass: <input type="password" id="txtPassword" placeholder="Password" /></div>
+		<div class="section"><input type="checkbox" id="cbRememberMe" onchange="AdminLoginRememberMeChanged()" /><label for="cbRememberMe">Remember Me</label></div>
+		<div class="section"><input type="button" id="btnLogin" value="Log in" onclick="DoAdministratorLogin()" /></div>
+	</div>
+	<div id="aboutDialog" style="display: none">
+		<div class="title">About UI2</div>
+		<div class="section">Version <span id="ui2_version_label"></span> by <a href="http://www.ipcamtalk.com/member.php?28-bp2008">bp2008</a></div>
+		<div class="section">UI2 is a third-party web interface for <a href="http://blueirissoftware.com/">Blue Iris</a></div>
+		<div class="section">
+			UI2 is designed for use with:
+		</div>
+		<div style="margin-top:10px;">
+			<a href="http://www.google.com/chrome"><img src="ui2/chrome48.png" alt="" style="vertical-align: middle;width:24px;height:24px;margin-right:10px;" />Google Chrome</a>
+		</div>
+		<div style="margin-top:10px;">
+			<a href="https://www.mozilla.org/en-US/firefox/new/"><img src="ui2/firefox48.png" alt="" style="vertical-align: middle;width:24px;height:24px;margin-right:10px;" />Mozilla Firefox</a>
+		</div>
+		<div style="margin-top:10px;">
+			Other browsers, including mobile versions of those listed above, may or may not provide full functionality.
+		</div>
+		<div class="section" style="margin-bottom: 5px;">Credits:</div>
+		<div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a>, <a href="http://www.flaticon.com/authors/daniel-bruce" title="Daniel Bruce">Daniel Bruce</a>, <a href="http://www.flaticon.com/authors/elegant-themes" title="Elegant Themes">Elegant Themes</a>, <a href="http://www.flaticon.com/authors/picol" title="Picol">Picol</a>, <a href="http://www.flaticon.com/authors/icomoon" title="Icomoon">Icomoon</a>, <a href="http://www.flaticon.com/authors/dave-gandy" title="Dave Gandy">Dave Gandy</a>, <a href="http://www.flaticon.com/authors/icons8" title="Icons8">Icons8</a>, <a href="http://www.flaticon.com/authors/victor-erixon" title="Victor Erixon">Victor Erixon</a>, <a href="http://www.flaticon.com/authors/google" title="Google">Google</a>, <a href="http://www.flaticon.com/authors/anton-saputro" title="Anton Saputro">Anton Saputro</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a>             is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0">CC BY 3.0</a></div>
+	</div>
+	<div id="audioWrapper" style="display: none">
+		<audio id="audioobj" autoplay="autoplay" preload="none">
+			<source id="audiosourceobj" src="" type="audio/x-wav"></source>
+		</audio>
+	</div>
+</body>
+</html>

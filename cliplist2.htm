@@ -1,0 +1,67 @@
+<div id="thumbheading" class="headingbar">
+	Clips
+	<label>
+		<input type="radio" id="R1" name="alerttype" onclick="rbAlertType_Change('1')" value="1" />Alerts</label>
+	<label>
+		<input type="radio" id="R0" name="alerttype" onclick="rbAlertType_Change('0')" value="0" />New+Stored</label>
+	<label>
+		<input type="radio" id="R2" name="alerttype" onclick="rbAlertType_Change('2')" value="2" />Flagged</label>
+</div>
+<div id="thumbpanel" class="panelbody">
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB0%%" onclick="thumbchosen('%%CLIP0%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB1%%" onclick="thumbchosen('%%CLIP1%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB2%%" onclick="thumbchosen('%%CLIP2%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB3%%" onclick="thumbchosen('%%CLIP3%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB4%%" onclick="thumbchosen('%%CLIP4%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB5%%" onclick="thumbchosen('%%CLIP5%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB6%%" onclick="thumbchosen('%%CLIP6%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB7%%" onclick="thumbchosen('%%CLIP7%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB8%%" onclick="thumbchosen('%%CLIP8%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB9%%" onclick="thumbchosen('%%CLIP9%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB10%%" onclick="thumbchosen('%%CLIP10%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB11%%" onclick="thumbchosen('%%CLIP11%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB12%%" onclick="thumbchosen('%%CLIP12%%')" />
+	</div>
+	<div class="thumbwrapper">
+		<img class="thumb" src="%%THUMB13%%" onclick="thumbchosen('%%CLIP13%%')" />
+	</div>
+</div>
+<div id="clipsheading" class="headingbar">
+	<input type="button" value="Refresh" class="button" id="btnRefresh" onclick="btnRefresh_Click()" />
+	<label for="cbAutoRefresh" id="lblAutoRefresh">
+		<input type="checkbox" id="cbAutoRefresh" onclick="cbAutoRefresh_Click()" />auto</label>
+	<span style="white-space: nowrap;">
+		<div id="btnNavLeft" class="inlineblock" onclick="btnNavLeft_Click()" />
+		<span id="pagenumber"></span>
+		<div id="btnNavRight" class="inlineblock" onclick="btnNavRight_Click()" />
+	</span>
+</div>
+<div id="clipspanel" class="panelbody">
+	<select id="ClipData" size="10" class="panelbody" onchange="clipchosen()">%%CLIPLIST%%
+	</select>
+</div>
