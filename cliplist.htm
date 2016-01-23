@@ -1,0 +1,254 @@
+<html>
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Blue Iris Clip frame</title>
+
+<style>
+img.thumb
+{
+	height:88px;
+}
+
+div.ex
+{
+	margin:1px;
+}
+</style>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Beginning of JavaScript --------
+
+var	timerID = null;
+var clipLineHeight = 0;
+
+window.onresize = function()
+{
+}
+
+function doload()
+{
+	document.location = "./cliplist.htm?cam=" + parent.camname + "&alerts=" + parent.showalerts + "&days=" + parent.daysago;
+}
+
+function onWindowResize()
+{
+	var myWidth = 0, myHeight = 0;
+	if( typeof( window.innerWidth ) == 'number' ) {
+		//Non-IE
+		myWidth = window.innerWidth;
+		myHeight = window.innerHeight;
+	} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+		//IE 6+ in 'standards compliant mode'
+		myWidth = document.documentElement.clientWidth;
+		myHeight = document.documentElement.clientHeight;
+	} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+		//IE 4 compatible
+		myWidth = document.body.clientWidth;
+		myHeight = document.body.clientHeight;
+	}
+	
+	var list = document.getElementById('ClipList');
+	var cell = document.getElementById('ClipCell');
+	
+	if( clipLineHeight ==0 )
+	{
+		clipLineHeight = document.getElementById('ClipList').clientHeight / 4;
+	}
+	
+	var lines = (myHeight-cell.offsetTop-10) /clipLineHeight;
+	
+	if( lines>=1 )
+		document.getElementById('ClipList').size = lines;
+
+	timerID = setTimeout( "ontimer()", 20000 );		
+	
+	box = document.getElementById('autocheck');
+	box.checked = parent.autorefresh;
+	
+	box1 = document.getElementById('R1');
+	box2 = document.getElementById('R2');
+	box3 = document.getElementById('R3');
+	box1.checked = (parent.showalerts==0);
+	box2.checked = (parent.showalerts==1);
+	box3.checked = (parent.showalerts==2);
+}
+
+function onauto()
+{
+	box = document.getElementById('autocheck');
+
+	parent.autorefresh = box.checked;
+
+	if( parent.autorefresh )
+		document.location.reload();
+}
+
+function onclips()
+{	
+	parent.showalerts = 0;
+		
+	doload();		
+}
+
+function onalerts()
+{	
+	parent.showalerts = 1;
+		
+	doload();		
+}
+
+function onflagged()
+{	
+	parent.showalerts = 2;
+		
+	doload();		
+}
+
+function ontimer()
+{
+	if( parent.autorefresh )
+	{
+		// don't refresh if ActiveX is in full screen mode
+		
+		if( !parent.document.MediaPlayer || !parent.document.LiveVideo.bHideUI )
+		{	
+			box = document.getElementById('ClipList');
+	
+			if( box.selectedIndex<0 )
+				document.location.reload();
+		}
+		else
+			timerID = setTimeout( "ontimer()", 20000 );		
+	}
+}
+
+function onload()
+{
+}
+
+function prevday()
+{
+	parent.daysago--;
+	if( parent.daysago<0 )
+		parent.daysago= 0;
+		
+	doload();		
+}
+
+function nextday()
+{
+	parent.daysago++;
+	 	
+	doload();		
+}
+
+function openclip( destination )
+{
+	box = document.getElementById('ClipList');
+
+	if( !destination )
+	{
+		if( box.selectedIndex>=0 )
+			destination = box.options[box.selectedIndex].value;
+	}
+	else
+	{
+		if( box.selectedIndex>=0 )
+			box.selectedIndex = -1;
+	}
+	
+	if (destination && destination!="na" )
+	{
+		if( parent.document.MediaPlayer )		// activeX page
+		{			
+			parent.openfile( destination, 640, 480 );
+		}
+		else
+		if( parent.document.LiveVideo )			// JAVA page
+		{
+			parent.openfile( destination, 640, 480 );
+		}
+		else
+		if( parent.document.images.webcam )		// JavaScript page
+		{
+			parent.openfile( destination, 640, 480 );
+		}
+		else
+		{
+			popup = window.open( destination, "newwin","height=290,width=400,scrollbars=yes,resizable=yes");
+			popup.focus();
+		}
+				
+//		popup = window.open( destination, "newwin","height=290,width=400,scrollbars=yes,resizable=yes");
+//		popup.focus();
+	}
+}
+
+// -- End of JavaScript code -------------- -->
+    </SCRIPT>
+
+</head>
+
+<body background="background.jpg" onLoad="onWindowResize()">
+
+<div align="center">
+		<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" id="AutoNumber2">
+			<tr>
+				<td height="20" bgcolor="#425963" style="border-style: outset; border-width: 1px">
+				<font color="#FFFFFF" face="Tahoma">&nbsp;<b>Clips:</b><input type="radio" id="R2" value="V1" onclick="onalerts()">alerts<input type="radio" id="R1" value="V1" onclick="onclips()">all 
+				clips<input type="radio" id="R3" value="V1" onclick="onflagged()">flagged</td>
+			</tr>
+			<tr height="100">
+				<td>
+				<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" id="AutoNumber3">
+					<tr>
+						<td><div class="ex" align="center">
+						<img class="thumb" border="0" src="%%THUMB0%%" onClick='openclip("%%CLIP0%%")'>
+						</div></td>
+						<td><div class="ex" align="center">
+						<img class="thumb" border="0" src="%%THUMB1%%" onClick='openclip("%%CLIP1%%")'>
+						</div></td>
+					</tr>
+					<tr>
+						<td><div class="ex" align="center">
+						<img class="thumb" border="0" src="%%THUMB2%%" onClick='openclip("%%CLIP2%%")'>
+						</div></td>
+						<td><div class="ex" align="center">
+						<img class="thumb" border="0" src="%%THUMB3%%" onClick='openclip("%%CLIP3%%")'>
+						</div></td>
+					</tr>
+					<tr>
+						<td><div class="ex" align="center">
+						<img class="thumb" border="0" src="%%THUMB4%%" onClick='openclip("%%CLIP4%%")'>
+						</div></td>
+						<td><div class="ex" align="center">
+						<img class="thumb" border="0" src="%%THUMB5%%" onClick='openclip("%%CLIP5%%")'>
+						</div></td>
+					</tr>
+				</table></td>
+			</tr>
+			<tr>
+				<td height="20" bgcolor="#425963" style="border-style: outset; border-width: 1px">
+				<font color="#FFFFFF" face="Tahoma"><b>&nbsp; </b>&nbsp;</font>
+				<button id="reload" style="height: 17px" onClick='document.location.reload()'>
+				<font size="1" face="Tahoma">Refresh</font></button>&nbsp; </font>
+				<input type="checkbox" id="autocheck" onclick="onauto()"/><font color="#FFFFFF" face="Tahoma">auto&nbsp; </font>&nbsp;
+				<button id="reload0" style="height: 17px" onClick='prevday()'>
+				<font face="Tahoma" size="1">&lt;500</font></button>
+				&nbsp;
+				<button id="reload1" style="height: 17px" onClick='nextday()'>
+				<font face="Tahoma" size="1">500&gt;</font></button>
+				</td>
+			</tr>
+			<tr>
+				<td style="padding-top: 4px" id="ClipCell">
+				<p align="center"><font face="Courier">
+				<select id="ClipList" name="ClipList" onclick="if( this.selectedIndex<0 ) this.selectedIndex=0;" onChange="openclip()" width="100%" size="4" style="width: 312px; font-family: Courier; font-size: 10pt;" >%%CLIPLIST%%
+				</select>
+				</font></p></td>
+			</tr>
+		</table>
+</div>
+</body>
+</html>

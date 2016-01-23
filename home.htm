@@ -1,0 +1,177 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Cameras</title>
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7"><![endif]-->
+<script type="text/javascript"> 
+var camname="";
+var shortname="";
+var timerID=null;
+var timerRunning=false;
+var basetime;
+var mediaWidth=640;
+var mediaHeight=480;
+var inptz=0;
+var webcam;
+var box;
+
+window.onload=function(){
+	webcam=document.getElementById("webcam");
+	box=document.getElementById('CamList')
+	opencam();
+	onWindowResize();
+	box.size=box.options.length+1;
+}
+
+window.onresize=function(){onWindowResize();}
+
+function OnPTZPreset(pos){new Image().src="/cam/"+shortname+"/pos="+pos+"?"+new Date().getTime();}
+
+function startTimer(){
+	timerID=window.setTimeout("loadImage()",100);
+	timerRunning=true;
+}
+
+function OnPTZ(pos,down){
+	if(down){
+		inptz=1;
+		new Image().src="/cam/"+shortname+"/pos="+pos+"?updown=1&"+new Date().getTime();
+	}else if(inptz>0){
+		inptz=0;
+		new Image().src="/cam/"+shortname+"/pos="+pos+"?updown=2&"+new Date().getTime();
+	}
+}
+
+function loadImage(){
+	if(String(camname).toLowerCase().substring(String(camname).length-3)!="jpg"){
+		webcam.onload=startTimer;
+	}else{
+		webcam.onload=null;
+	}
+	webcam.src=camname+"?time="+(new Date().getTime()-basetime);
+}
+
+function onWindowResize(){
+	var content_offset_w=150+20;
+	var content_offset_h=0;
+	var myWidth=0,myHeight=0;
+	if(typeof(window.innerWidth)=="number"){
+		myWidth=window.innerWidth;
+		myHeight=window.innerHeight;
+	}else if(document.documentElement&&(document.documentElement.clientWidth||document.documentElement.clientHeight)){
+		myWidth=document.documentElement.clientWidth;
+		myHeight=document.documentElement.clientHeight;
+	}
+	if(myWidth>content_offset_w&&myHeight>content_offset_h){
+		myWidth-=content_offset_w;
+		myHeight-=content_offset_h;
+		var r=mediaWidth/mediaHeight;
+		if(myHeight*r<myWidth ){
+			myWidth=myHeight*r;
+		}else{
+			myHeight=myWidth/r;
+		}
+		webcam.width=myWidth;
+		webcam.height=myHeight;
+	}
+}
+
+function opencam(){
+	if(box.selectedIndex<0){return;}
+	destination=box.options[box.selectedIndex].value;
+	if(!destination||destination=="off"){
+		mediaWidth=640;
+		mediaHeight=480;
+		try{
+			webcam.src="/nothumb.jpg";
+		}catch(er){
+			alert("Error "+er);
+		}
+	}else{
+		parts=destination.split(";");
+		if(parts[0]=="wmv"){
+			mediaWidth=Number(parts[1]);
+			mediaHeight=Number(parts[2]);
+		}else if(parts[0]=="jpg"){
+			mediaWidth=Number(parts[1]);
+			mediaHeight=Number(parts[2]);
+			bits=parts[5];
+			pieces=parts[3].split("/");
+			shortname=pieces[3];
+			camname="/image/"+shortname;
+			if(bits&2)
+				document.getElementById("rowptz").style.display="";
+			else
+				document.getElementById("rowptz").style.display="none";
+			basetime=new Date().getTime();
+			loadImage();
+		}
+	}
+	onWindowResize();
+}
+
+function imageClicked(eventData){
+	var ncams=box.length-1;
+	if(ncams>0){
+		var indexx=1;
+		var indexy=1;
+		while(true){
+			if(ncams-1<indexx*indexy) break;
+			indexx++;
+			if(ncams-1<indexx*indexy) break;
+			indexy++;
+		}
+		var width=Math.floor(webcam.width/indexx);
+		var height=Math.floor(webcam.height/indexy);
+		eventData = (eventData) ? eventData : event;
+		if(typeof(eventData.offsetX)!="undefined"){
+			var x=eventData.offsetX;
+			var y=eventData.offsetY;
+		}else{
+			var x=eventData.clientX-this.offsetLeft;
+			var y=eventData.clientY-this.offsetTop;
+		}
+		if(shortname=="index")
+			box.selectedIndex=(Math.floor(y/height)*indexx+Math.floor(x/width))+1;
+		else
+			box.selectedIndex=0;
+		opencam();
+	}
+}
+
+</script>
+<style type="text/css">
+html,body,select,iframe,a,img,div{margin:0;padding:0;border:0;font:1em/150% Verdana,Geneva,sans-serif;}
+body,html{width:100%;height:100%;background:#000;}
+select{width:150px;float:left;}
+#controlframe{float:left;width:150px;height:100%;text-align:center;background:#999;overflow:hidden;}
+#logo{background:url(logo.jpg) no-repeat right top;height:1200px;width:150px;float:left;}
+#rowptz{margin-top:150px;}
+#mainframe{position:relative;display:table;height:100%;text-align:center;margin:0 auto;}
+</style>
+</head>
+<body>
+<div id="controlframe">
+	<select size="2" id="CamList" name="CamList" onclick="if(this.selectedIndex<0)this.selectedIndex=0;" onChange="opencam();">%%CAMLIST%%</select>
+	<div id="logo">
+		<div id="rowptz" style="display:none;">
+			<a onMouseDown="OnPTZ(0,true);" onMouseUp="OnPTZ(0,false);" id="panleft"><img src="left.png" width="24" height="23" alt="Pan Left" title="Pan Left"></a>
+			<a onMouseDown="OnPTZ(1,true);" onMouseUp="OnPTZ(1,false);" id="panright"><img src="right.png" width="24" height="23" alt="Pan Right" title="Pan Right"></a>
+			<a onMouseDown="OnPTZ(2,true);" onMouseUp="OnPTZ(2,false);" id="tiltup"><img src="up.png" width="24" height="23" alt="Tilt Up" title="Tilt Up"></a>
+			<a onMouseDown="OnPTZ(3,true);" onMouseUp="OnPTZ(3,false);" id="tiltdown"><img src="down.png" width="24" height="23" alt="Tilt Down" title="Tilt Down"></a><br>
+			<a onMouseDown="OnPTZPreset(8);" target="retframe" id="preset1"><img src="preset1.png" width="24" height="23" alt="Preset 1" title="Preset 1"></a>
+			<a onMouseDown="OnPTZPreset(9);" target="retframe" id="preset2"><img src="preset2.png" width="24" height="23" alt="Preset 2" title="Preset 2"></a>
+			<a onMouseDown="OnPTZPreset(10);" target="retframe" id="preset3"><img src="preset3.png" width="24" height="23" alt="Preset 3" title="Preset 3"></a>
+			<a onMouseDown="OnPTZPreset(11);" target="retframe" id="preset4"><img src="preset4.png" width="24" height="23" alt="Preset 4" title="Preset 4"></a>
+			<a onMouseDown="OnPTZPreset(12);" target="retframe" id="preset5"><img src="preset5.png" width="24" height="23" alt="Preset 5" title="Preset 5"></a><br>
+			<a onMouseDown="OnPTZ(5,true);" onMouseUp="OnPTZ(5,false);" id="zoomin"><img src="zoomin.png" width="24" height="23" alt="Zoom In" title="Zoom In"></a>
+			<a onMouseDown="OnPTZ(6,true);" onMouseUp="OnPTZ(6,false);" id="zoomout"><img src="zoomout.png" width="24" height="23" alt="Zoom Out" title="Zoom Out"></a>
+		</div>
+	</div>
+	<iframe id="retframe" name="retframe" width="0" height="0"></iframe>
+</div>
+<div id="mainframe"><img src="clear.gif" id="webcam" onclick="imageClicked();" alt="" title=""></div>
+</body>
+</html>

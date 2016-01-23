@@ -1,0 +1,180 @@
+<html style="width: 100%;">
+<head>
+<style>
+.optionList {
+  border:1px solid #333333;
+  font-size:20;
+  height: 25px;
+  overflow: auto;
+}
+label {
+    display:block;
+}
+label:hover {
+    background-color:#eeeeff;
+}
+</style>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="HandheldFriendly" content="True" />
+<title>Blue Iris Mobile</title>
+	
+<script type="text/javascript">
+<!--
+
+var	timerID = null;
+var	timerRunning = false;
+
+var ringcounter = 0;
+var totalcounter = 0;
+var lastcounter = 0;
+var winWidth = 128;
+var camName = '';
+
+function getWinWidth()
+{
+	var isIE = (document.all) ? true : false;
+	
+	if (isIE)
+		return(document.body.clientWidth);
+	
+	return(window.innerWidth);
+}
+
+function ckstatus()
+{
+	if( totalcounter == lastcounter )
+	{
+		// hung? restart.
+		
+		showtime();
+	}
+	else
+	{
+		lastcounter = totalcounter;
+	}
+
+	setTimeout( "ckstatus()",10000 );	// 10 seconds
+}
+
+function stopclock()
+{
+	if(timerRunning)
+		clearTimeout(timerID);
+		
+	timerRunning = false;
+}
+
+function startclock()
+{
+	changecam();
+
+	setTimeout( "ckstatus()",10000 );	// 10 seconds
+	showtime();	
+}
+
+function doimage()
+{
+	// yield briefly between requests
+	
+	timerID = setTimeout( "showtime()",25 );
+	timerRunning = true;
+}
+
+function showtime()
+{
+	stopclock();
+			
+	totalcounter ++;
+
+	ringcounter ++;
+	if( ringcounter > 3000 )
+	 	ringcounter = 0;
+
+	winWidth = getWinWidth();
+	
+	document.images.webcam.onload = doimage;
+    document.images.webcam.onclick = imageClicked;	// for FF
+	document.images.webcam.src ="http://%%SERVERNAME%%/image/"+ camName +"?w="+ (winWidth-2) + "&" + ringcounter;
+}
+
+function changecam()
+{
+	var box = document.getElementById("CamList");
+
+	if( box.selectedIndex>=0 )
+		camName = box.options[box.selectedIndex].value;
+}
+
+function imageClicked(eventData)
+{	
+  	var box = document.getElementById("CamList");
+	var ncams  = box.length-1;
+
+	if( ncams>0 )
+	{
+		var indexx = 1;
+		var indexy = 1;
+	
+		while( true )
+		{
+			if( ncams-1<indexx *indexy )
+				break;
+	
+			indexx ++;
+	
+			if( ncams-1<indexx*indexy )
+				break;
+	
+			indexy ++;
+		}
+		
+		var width = Math.floor(document.images.webcam.width / indexx);
+		var height = Math.floor(document.images.webcam.height / indexy);
+	
+	    eventData = (eventData) ? eventData : event;
+	
+	    if (typeof(eventData.offsetX) != 'undefined') {
+	        var x = eventData.offsetX;
+	        var y = eventData.offsetY;
+	    } else {
+	        var x = eventData.clientX - this.offsetLeft;
+	        var y = eventData.clientY - this.offsetTop;
+	    }
+	    
+	    var camno = Math.floor(y / height) * indexx + Math.floor(x / width);
+	    
+	    if( camName=='index' )
+			box.selectedIndex = camno + 1;
+		else
+	    	box.selectedIndex = 0;
+
+		camName = box.options[box.selectedIndex].value;
+	    	
+//	    alert('You clicked the image at ' + box.selectedIndex+ ', ' + camno +' ' + camName );
+	}
+}
+
+//-->
+</script>
+</head>
+
+<body bgcolor="#425963"  onLoad="startclock();" topmargin="1" leftmargin="1" rightmargin="1" bottommargin="1" style="width: 100%;" >
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber1" style="width: 100%;">
+  <tr>
+    <td width="100%"><center>
+			<p align="center"><select class="optionList" name="CamList" id="CamList" onchange='startclock();'>
+			%%CAMLIST2%%
+			</select></p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+	<p align="center">
+   		<IMG border=0 SRC="" name="webcam" id="webcam" onclick='imageClicked()' style="width: 100%;">
+   	</p>
+   	</td>
+  </tr>
+
+  </table>
+</body>
+</html>

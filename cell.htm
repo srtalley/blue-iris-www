@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="HandheldFriendly" content="True" />
+
+<title>Blue Iris Mobile</title>
+	
+<SCRIPT LANGUAGE="javascript">
+
+var	timerID = null;
+var	timerRunning = false;
+
+var ringcounter = 0;
+var totalcounter = 0;
+var lastcounter = 0;
+var winWidth = 128;
+var camName = '';
+
+function getWinWidth()
+{
+	var isIE = (document.all) ? true : false;
+	
+	if (isIE)
+		return(document.body.clientWidth);
+	
+	return(window.innerWidth);
+}
+
+function ckstatus()
+{
+	if( totalcounter == lastcounter )
+	{
+		// hung? restart.
+		
+		showtime();
+	}
+	else
+	{
+		lastcounter = totalcounter;
+	}
+
+	setTimeout( "ckstatus()",10000 );	// 10 seconds
+}
+
+function stopclock()
+{
+	if(timerRunning)
+		clearTimeout(timerID);
+		
+	timerRunning = false;
+}
+
+function startclock()
+{
+	changecam();
+
+	setTimeout( "ckstatus()",10000 );	// 10 seconds
+	showtime();	
+}
+
+function doimage()
+{
+	// yield briefly between requests
+	
+	timerID = setTimeout( "showtime()",25 );
+	timerRunning = true;
+}
+
+function showtime()
+{
+	stopclock();
+			
+	totalcounter ++;
+
+	ringcounter ++;
+	if( ringcounter > 3000 )
+	 	ringcounter = 0;
+
+	winWidth = getWinWidth();
+	
+	document.images.webcam.onload = doimage;
+	document.images.webcam.src ="http://%%SERVERNAME%%/image/"+ camName +"?w="+ (winWidth-2) + "&" + ringcounter;
+}
+
+function changecam()
+{
+	box = document.forms["Form1"].CamList;
+
+	if( box.selectedIndex>=0 )
+		camName = box.options[box.selectedIndex].value;
+}
+
+</SCRIPT>
+
+</head>
+<body bgcolor="#425963"  onLoad="startclock();" topmargin="1" leftmargin="1" rightmargin="1" bottommargin="1" >
+
+<form name="Form1">
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" bordercolor="#111111" width="100%" id="AutoNumber1">
+  <tr>
+    <td width="100%">
+	<p align="center">
+   		<IMG border=0 SRC="http://%%SERVERNAME%%/image/"+camName name=webcam >
+   	</td>
+  </tr>
+  <tr>
+    <td width="100%"><center>
+			<p align="center"><select size="1" name="CamList" id="CamList" onchange='changecam()'>
+			%%CAMLIST2%%
+			</select></p>
+  </td>
+  </tr>
+  </table>
+ </form>
+</body>
+</html>

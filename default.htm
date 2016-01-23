@@ -1,0 +1,311 @@
+<html>
+
+<head>
+<link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+<meta http-equiv="Content-Language" content="en-us">
+<title>Blue Iris Remote View</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+<meta http-equiv="Page-Enter" content="blendTrans(Duration=0.0)"/><!--Fixes IE Page 'Flicker' -->
+<meta http-equiv="Page-Exit" content="blendTrans(Duration=0.0)"/><!--Fixes IE Page 'Flicker' -->
+
+<script type="text/javascript"> 
+	var bWM = false;
+	var mediaWidth = 640;
+	var mediaHeight = 480;
+	var daysago = 0;
+	var camname = "";
+	var showalerts = %%SHOWALERTS%%;
+	var autorefresh = false;
+
+    window.onload = function()
+	{
+		opencam();
+        onWindowResize();
+    }
+    
+    window.onresize = function()
+    {
+        onWindowResize();
+    }
+    
+    window.onbeforeunload = function()
+    {
+		try
+		{
+			document.LiveVideo.Shutdown();
+		}
+		catch(er)
+		{
+		}
+    }
+    
+	function getSession()
+	{
+		var i,x,y,ARRcookies=document.cookie.split(";");
+		for (i=0; i<ARRcookies.length; i++ )
+		{
+			x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+			y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+			x=x.replace(/^\s+|\s+$/g,"");
+
+			if (x=="session")
+			{
+				return unescape(y);
+			}
+		}
+	}
+    
+    function openfile( dest, w, h )
+    {
+		box = document.getElementById('CamList');		
+		box.selectedIndex = -1;
+
+		bWM = false;				
+		document.MediaPlayer.URL = "";
+		
+		mediaWidth = w;
+		mediaHeight = h;
+		
+		try
+		{
+//			document.LiveVideo.bHideUI = false;
+			document.LiveVideo.changeURL( dest  + ";0;"+ getSession() );
+		}
+		catch(er)
+		{
+			if( typeof( window.innerWidth ) == 'number' )
+			{
+				//Non-IE
+				alert( "Please use the JAVA page for this browser.");
+			}
+			else
+			{
+				alert( "Please install the Blue Iris ActiveX component then refresh this page.");
+			}
+		}
+			
+		onWindowResize();
+    }
+    
+    function onWindowResize()
+    {
+        var isIE = Number(navigator.appName.indexOf('Internet Explorer')) != -1;
+        var content_offset_w = 324 + 24; 
+        var content_offset_h = 40 + 24; // + (isIE ? 3:0);
+
+		var myWidth = 0, myHeight = 0;
+		if( typeof( window.innerWidth ) == 'number' ) {
+			//Non-IE
+			myWidth = window.innerWidth;
+			myHeight = window.innerHeight;
+		} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+			//IE 6+ in 'standards compliant mode'
+			myWidth = document.documentElement.clientWidth;
+			myHeight = document.documentElement.clientHeight;
+		} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+			//IE 4 compatible
+			myWidth = document.body.clientWidth;
+			myHeight = document.body.clientHeight;
+		}
+		
+		var winWidth = myWidth;
+		var winHeight = myHeight;
+		
+        if( myWidth>content_offset_w && myHeight>content_offset_h )
+        {
+         	myWidth -= content_offset_w;
+         	myHeight -= content_offset_h;
+         
+//			if( mediaWidth>=640 && mediaHeight <=288 )	// eg, single field 640x240
+//				mediaHeight *= 2;
+
+			var r = myWidth /myHeight ;
+//			var r = mediaWidth/mediaHeight;
+
+			if( myHeight*r < myWidth )
+			{
+				myWidth = myHeight*r;
+			}
+			else
+			{
+				myHeight = myWidth /r;
+			}
+
+			if( !bWM )
+			{		
+				document.MediaPlayer.width = 1;
+				document.MediaPlayer.height = 1;
+				document.LiveVideo.width = myWidth;
+				document.LiveVideo.height = myHeight;
+			}
+			else
+			{
+				document.LiveVideo.width = 2;
+				document.LiveVideo.height = 2;
+				document.MediaPlayer.width = myWidth;
+				document.MediaPlayer.height = myHeight;
+			}
+		}
+		
+		I1.onWindowResize();
+    }
+    
+	function opencam()
+	{
+		box = document.getElementById('CamList');
+		if( box.selectedIndex < 0 )
+			return;
+			
+		destination = box.options[box.selectedIndex].value;
+		
+		if( !destination || destination=="off" )
+		{
+			bWM = false;
+			document.MediaPlayer.URL = "";
+
+			mediaWidth = 640;
+			mediaHeight = 480;
+			
+			try
+			{
+	//			document.LiveVideo.changeURL( parts[3] );
+			}
+			catch(er)
+			{
+				alert( "Blue Iris ActiveX component is not installed.");
+			}
+		}
+		else 
+		{
+			parts = destination.split(";");
+			
+			if( parts[0]=="wmv" )
+			{
+				mediaWidth = Number(parts[1]);
+				mediaHeight = Number(parts[2]);
+				
+				try
+				{
+					bWM = true;				
+					document.MediaPlayer.URL = parts[3];	
+				}
+				catch(er)
+				{
+					alert( "Media Player ActiveX component is not installed.");
+				}			
+			}
+			else
+			if( parts[0]=="jpg" )
+			{
+				bWM = false;				
+				document.MediaPlayer.URL = "";
+				
+				mediaWidth = Number(parts[1]);
+				mediaHeight = Number(parts[2]);
+									
+				try
+				{
+//					var v = document.LiveVideo.GetVersion();
+										
+					segments = parts[3].split('/');
+					camname = segments[3];
+
+					I1.location = "./cliplist.htm?cam=" + camname + "&alerts=" + showalerts;
+					
+					document.LiveVideo.changeURL( parts[3] + ";" + parts[5] + ";" + getSession() );
+				}
+				catch(er)
+				{
+					if( typeof( window.innerWidth ) == 'number' )
+					{
+						//Non-IE
+						alert( "Please use the JAVA page for this browser.");
+					}
+					else
+					{
+						alert( er + " Please install/update the Blue Iris ActiveX component then refresh this page.");
+					}
+				}
+			}		
+		}
+
+		onWindowResize();
+
+//		I1.document.getElementById('ClipList').selectedIndex = -1;
+	}
+	
+</script>
+
+</head>
+
+<body background="background.jpg" >
+
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="99%" height="99%">
+	<tr>
+		<td height="30">
+			<p align="center" style="margin-top: 0; margin-bottom: 1px">
+			<font color="#FFFFFF"><font face="Tahoma" size="4"><b>
+			Blue Iris&nbsp;</b></font><font face="Tahoma" size="2">(ActiveX/MPEG on %%SERVERNAME%%) </font>
+			</font>
+			<font face="Tahoma" size="1"><font color="#FFFFFF">&nbsp;&nbsp; 
+			</font> <a href="/applet/XCastInstall.exe">
+			<font color="#FFFFFF">install the ActiveX [4.0.0.4]</font></a><font color="#FFFFFF">&nbsp;&nbsp;&nbsp; 
+			</font> </font><font face="Tahoma" size="2">
+			<font color="#FFFFFF">&nbsp;</font><a href="jpegpull.htm"><font color="#FFFFFF">go to JAVA/JPEG viewer</font></a><font color="#FFFFFF">&nbsp;
+			</font>
+			<a href="/logout.htm"><font color="#FFFFFF">logout</font></a></font></p>
+		</td>
+	</tr>
+	<tr>
+		<td>
+		<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" height="100%">
+			<tr>
+				<td width="324" height="100%">
+				<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse" width="100%" height="100%">
+					<tr>
+						<td id="row1" height="20" bgcolor="#425963" style="border-style: outset; border-width: 1px"><b>
+						<font face="Tahoma" color="#FFFFFF">&nbsp;Cameras</font></b></td>
+					</tr>
+					<tr>
+						<td id="row2" height="128">
+							<p align="center">
+							<select size="8" id="CamList" name="CamList" onclick="if( this.selectedIndex<0 ) this.selectedIndex=0;" onChange="opencam()" WIDTH="312" style="width: 312px; font-family: Courier; font-size: 10pt">%%CAMLIST%%
+							</select>
+							</p>
+						</td>
+					</tr>
+					<tr>
+						<td id="iframerow" height="100%" bgcolor="#FFFFFF">
+						<iframe id="I1" name="I1" src="./cliplist.htm?cam=~" width="100%" height="100%" marginwidth="0" marginheight="0" scrolling="no" border="0" frameborder="0">
+						Your browser does not support inline frames or is currently configured not to display inline frames.
+						</iframe>
+						</td>
+					</tr>
+				</table>
+				</td>
+				<td bgcolor="#000000" id="cell_video" style="border-style: outset; border-width: 1px">
+					<p align="center">
+					<OBJECT ID="LiveVideo" width="2" height="2"
+						classid="CLSID:BC165EA0-F79E-4F12-8493-80679EB5BEC2"
+						type="application/x-oleobject">
+					</OBJECT>
+					<object id="MediaPlayer"  width="1" height="1" CLASSID="CLSID:6BF52A52-394A-11d3-B153-00C04F79FAA6"
+						standby="Loading Microsoft Windows Media Player components..."
+						type="application/x-oleobject">
+						<param name="uiMode" value="mini">
+						<embed type="application/x-mplayer2" 
+							pluginspage="http://www.microsoft.com/isapi/redir.dll?prd=windows&sbp=mediaplayer&ar=Media&sba=Plugin&"
+							src="" name="MediaPlayer" width=1 height=1 autostart=1>
+					    </embed>
+					</object></p>
+				</td>
+			</tr>
+		</table>
+		</td>
+	</tr>
+</table>
+
+</body>
+
+</html>
