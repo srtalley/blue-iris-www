@@ -1,0 +1,566 @@
+<html>
+
+<head>
+<link rel="shortcut icon" href="/favicon.jpg" type="image/x-icon">
+<meta http-equiv="Content-Language" content="en-us">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="X-UA-Compatible"/>
+<meta http-equiv="Page-Enter" content="blendTrans(Duration=0.0)"/><!--Fixes IE Page 'Flicker' -->
+<meta http-equiv="Page-Exit" content="blendTrans(Duration=0.0)"/><!--Fixes IE Page 'Flicker' -->
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Expires" CONTENT="-1">
+<title>Blue Iris on %%SERVERNAME%%</title>
+
+<script type="text/javascript"> 
+	var camname = "";
+	var shortname = "";
+	var timerID = null;
+	var timerRunning = false;
+	var basetime;
+	
+	var mediaWidth = 640;
+	var mediaHeight = 480;
+	var daysago = 0;
+	var inptz = 0;
+	var clipLineHeight = 0;
+	var prevCam = 0;
+	var liveCamRate = 250;
+	var content_offset_w = 24; //This must be adjusted to work with the border for the div
+        var content_offset_h = 100;
+	
+	window.onload = function()
+	{
+		urlSettings();
+		opencam();
+		onWindowResize();
+	}
+    
+	window.onresize = function()
+	{
+		onWindowResize();
+	}
+
+	function gup( name )
+	{
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]"+name+"=([^&#]*)";
+		var regex = new RegExp( regexS );
+		var results = regex.exec( window.location.href );
+		if( results == null )
+			return "";
+		else
+			return results[1];
+	}
+    
+	function startTimer()
+	{
+		timerID = window.setTimeout( "loadImage()",liveCamRate );
+		timerRunning = true;
+	}
+	
+	function loadImage()
+	{
+		var tmp = new Date(); 
+	
+		var iLen = String(camname).length;
+
+		if( String(camname).toLowerCase().substring(iLen-3) != "jpg" )
+			document.images.webcam.onload = startTimer;
+		else
+			document.images.webcam.onload = null;
+	
+		document.images.webcam.src = camname + "?time=" + (tmp.getTime()-basetime);
+	}
+	
+	function openfile( dest, w, h )
+	{
+		document.all["rowptz"].style.display = 'none';
+		
+		box = document.getElementById('CamList');
+
+		if( box.selectedIndex>=0 )
+			prevCam = box.selectedIndex;
+
+		box.selectedIndex = -1;
+
+		mediaWidth = w;
+		mediaHeight = h;
+		
+		parts = dest.split("/");
+	
+		camname = "/file/clips";
+		
+		for(i = 4; i < parts.length; i++) {
+			camname += "/";
+			camname += parts[i];
+		}
+		
+		var tmp = new Date(); 
+		basetime = tmp.getTime();
+			
+		loadImage();
+		onWindowResize();
+  	}
+    
+	function onWindowResize()
+	{
+		var myWidth = 0;
+		var myHeight = 0;
+		if( typeof( window.innerWidth ) == 'number' ) {
+			//Non-IE
+			myWidth = document.documentElement.clientWidth;
+			myHeight = document.documentElement.clientHeight;
+		} else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
+			//IE 6+ in 'standards compliant mode'
+			myWidth = document.documentElement.clientWidth;
+			myHeight = document.documentElement.clientHeight;
+		} else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
+			//IE 4 compatible
+			myWidth = document.body.clientWidth;
+			myHeight = document.body.clientHeight;
+		}
+
+		if( myWidth>content_offset_w && myHeight>content_offset_h )
+		{
+			myWidth -= content_offset_w;
+			myHeight -= content_offset_h;
+
+			var r = mediaWidth/mediaHeight;
+
+			if( myHeight*r < myWidth )
+			{
+				myWidth = myHeight*r;
+			}
+			else
+			{
+				myHeight = myWidth/r;
+			}
+
+			document.images.webcam.width = myWidth;
+			document.images.webcam.height = myHeight;
+		}
+		
+	}
+    
+	function changeLinkHref(id,newHref)
+	{
+	    if( document.getElementById)
+	    {
+			document.getElementById(id).href = newHref;
+	    }
+	    else if( document.all )
+	    {
+			document.all[id].href = newHref;
+	    }
+	}
+
+ 	function urlSettings()
+ 	{
+ 	
+		urlCam = gup('CamList');
+		if( !urlCam )
+		{
+			
+			camname = urlCam;
+			
+
+		
+		}
+		
+		var cambox = document.getElementById('CamList');
+		for (var i = 0; i < cambox.options.length; i++) {
+			if (cambox.options[i].value == urlCam) {
+				cambox.options[i].selected = true;
+			}
+		}
+		
+		
+		urlRate = gup('RateList');
+		if( !urlRate ) 
+		{
+		 
+		 	liveCamRate = urlRate;
+			
+		}
+		
+		var ratebox = document.getElementById('RateList');
+		for (var i = 0; i < ratebox.options.length; i++) {
+			if (ratebox.options[i].value == urlRate) {
+				ratebox.options[i].selected = true;
+			}
+		}
+ 	
+ 	}
+
+	function opencam()
+	{
+
+				
+		
+		cambox = document.getElementById('CamList');
+		if( cambox.selectedIndex < 0 )
+			return;
+			
+		destination = cambox.options[cambox.selectedIndex].value;
+		
+	
+
+		if( !destination || destination=="off" )
+		{
+			try
+			{
+				document.images.webcam.src = "/nothumb.jpg";
+			}
+			catch(er)
+			{
+				alert( "Error " + er );
+			}
+		}
+		else 
+		{
+			parts = destination.split(";");
+			
+			if( parts[0]=="jpg" )
+			{
+				mediaWidth = Number(parts[1]);
+				mediaHeight = Number(parts[2]);
+				
+				pieces = parts[3].split("/");
+				shortname = pieces[3];
+				camname = "/image/" + shortname;
+				
+				if( pieces[3] == 'index' )
+				{
+					document.getElementById('currcamtxt').innerHTML ='Viewing:';
+				}
+				else
+				{
+					document.getElementById('currcamtxt').innerHTML ='Live View:';
+				}	
+				var tmp = new Date(); 
+				basetime = tmp.getTime();
+				
+				loadImage();
+				display_ct();
+			}		
+		}
+		
+		onWindowResize();
+
+	}
+
+
+
+
+	
+
+	function setrfrate( rate )
+	{
+		ratebox = document.getElementById('RateList');
+
+		if( !rate )
+		{
+			if( ratebox.selectedIndex>=0 )
+			{
+				rate = ratebox.options[ratebox.selectedIndex].value;
+			}
+			else
+			{
+				return;
+			}
+		}
+		liveCamRate = ratebox.options[ratebox.selectedIndex].value;
+		startTimer()
+	}
+
+	function display_c()
+	{
+		var clkrefresh=1000; // Refresh rate in milli seconds
+		mytime=setTimeout('display_ct()',clkrefresh)
+	}
+
+	function display_ct()
+	{
+		var strcount
+		var x = new Date()
+		document.getElementById('ct').innerHTML = x;
+		tt=display_c();
+	}
+
+</script>
+
+<style>
+div#camdiv
+{
+text-align:  center;
+}
+
+div#rowptz
+{
+text-align:  center;
+}
+
+div#camselection
+{
+text-align:center;
+}
+
+div#footer
+{
+text-align:center;
+}
+
+
+p#normal {font-family:"Helvetica", "Tahoma", sans-serif;}
+
+
+h1 {font-family:"Helvetica", "Tahoma", sans-serif; font-size: 20px;}
+h2 {font-family:"Helvetica", "Tahoma", sans-serif; font-size: 18px;}
+h3 {font-family:"Helvetica", "Tahoma", sans-serif; font-size: 16px;}
+h4 {font-family:"Helvetica", "Tahoma", sans-serif; font-size: 12px;}
+
+p#small {font-family:"Helvetica", "Tahoma", sans-serif; font-size: 12px;}
+
+
+/* added 6/5/2015 */
+.camslistrow {
+    border: 1px solid black;
+    overflow:hidden;
+    font-family:"Helvetica", "Tahoma", sans-serif;
+    font-size: small;
+}
+
+.camslistrow .col25
+{
+    float: left;
+    width: 22%;
+    padding-left: 0px;
+}
+.camslistrow .col33
+{
+    float: left;
+    width: 33%;
+}
+
+.last{
+    clear: left;
+}
+
+#fourcolumns {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+    font-family:"Helvetica", "Tahoma", sans-serif;
+    font-size: small;
+    text-align: center;
+}
+
+#fourcolumns div {
+    width: 25%;
+    float: left;
+}
+
+#twocolumns{
+    width: 100%;
+    overflow: hidden;
+}
+
+#twocolumns div {
+    width: 50%;
+    float: left;
+}
+
+@media only screen and (max-width: 600px) {
+
+	#fourcolumns {
+		width: 100%;
+		overflow: hidden;
+		font-family:"Helvetica", "Tahoma", sans-serif;
+		font-size: xx-small;
+	}
+}
+
+@media only screen and (max-width: 360px) {
+
+	#fourcolumns {
+		width: 100%;
+		overflow: hidden;
+		font-family:"Helvetica", "Tahoma", sans-serif;
+		font-size: xx-small;
+	}
+	#fourcolumns div {
+    width: 100%;
+    float: left;
+}
+}
+
+
+</style>
+</head>
+
+<body bgcolor="#CCCCCC">
+<form name="Form1">
+<div id="camdiv">
+	<IMG border=4 SRC="" name="webcam" id="webcam" width=10000>
+</div>
+
+
+
+
+<div id="camselection">
+
+<h3><font id="currcamtxt">Viewing:&nbsp;</font>
+<select size="1" name="CamList" id="CamList" onChange="opencam()">%%CAMLIST%%</select>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+							
+Refresh rate:&nbsp;<select id="RateList" name="RateList" onclick="if( this.selectedIndex<0 ) this.selectedIndex=4;" onChange="setrfrate()" font-family: Courier; font-size: 10pt">
+								<option  selected="selected"value="250">.25 Second</option>
+								<option value="500">.5 Second</option>
+								<option value="1000">1 Second</option>
+								<option value="2500">2.5 Seconds</option>
+								<option value="5000">5 Seconds</option>
+								<option value="10000">10 Seconds</option>
+								<option value="20000">20 Seconds</option>
+								<option value="30000">30 Seconds</option>
+								<option value="60000">1 Minute</option>
+							</select>
+							</font>
+
+</div>
+
+
+
+
+
+<div id="footer">
+<H4><a href="http://%%SERVERNAME%%/jpegpull.htm">Clips</a> | <a href="http://%%SERVERNAME%%/ui2.htm">Next Generation Viewer</a> | <a href="http://%%SERVERNAME%%/allcams.htm">All Cameras View</a></H4>
+<P id="small">Blue Iris Remote Camera JPEG Refresh on %%SERVERNAME%% </br>
+	Local Time -&nbsp;<span id='ct'></P>
+
+</FORM>
+</div>
+
+
+<div id="fourcolumns">
+	<div>
+	<P>Driveway:
+		<ul><li><a href="http://10.0.1.40">Gate</a> </li>
+		<li><a href="http://10.0.1.31">DrivewayNorthWest</a> </li>
+		<li><a href="http://10.0.1.35">DrivewaySouth</a></li>
+		<li><a href="http://10.0.1.43">DrivewayWest</a> </li>
+		</ul>		
+	</P>
+	</div>
+	<div>
+	<P>Barn:
+		<ul><li><a href="http://10.0.1.33">BarnEastWindow</a></li>
+		<li><a href="http://10.0.1.34">BarnExteriorSouth</a></li>
+		<li><a href="http://10.0.1.36">BarnDuckCam</a></li>
+		<li><a href="http://10.0.1.37">BarnInteriorNorth</a></li>
+		<li><a href="http://10.0.1.39">BarnInteriorSouth</a></li>
+		<li><a href="http://10.0.1.45">BarnExteriorNorth</a></li>
+		</ul>		
+	</P>
+	</div>
+	<div>
+	<P>Horses:
+		<ul id="small"><li><a href="http://10.0.1.41">HorseStallExteriorNorth</a></li>
+		<li><a href="http://10.0.1.42">HorseStallInterior</a> </li>
+		<li><a href="http://10.0.1.44">HorseStallExteriorEast</a> </li>
+		<li><a href="http://10.0.1.46">Paddock</a></li>
+		</ul>		
+	</P>
+	</div>
+	<div>
+	<P>Misc:
+		<ul><li><a href="http://10.0.1.32">Garage</a></li>
+		<li><a href="http://10.0.1.38">Basement</a></li>
+		</ul>		
+	</P>
+	</div>
+</div>
+
+<div id="fourcolumns">
+	<div>
+	<P>Driveway<br />
+		<a href="http://10.0.1.40">Gate</a> | 
+		<a href="http://10.0.1.31">Northwest</a><br />
+		<a href="http://10.0.1.35">South</a> | <a href="http://10.0.1.43">SouthWest</a> 
+				
+	</P>
+	</div>
+	<div>
+	<P>Barn<br />
+		<a href="http://10.0.1.33">Exterior East</a> | 		<a href="http://10.0.1.36">Exterior Ducks</a><br/>
+		<a href="http://10.0.1.34">Exterior South</a> | <a href="http://10.0.1.37">Interior North</a><br>
+		<a href="http://10.0.1.45">Exterior North</a> | 
+
+
+		<a href="http://10.0.1.39">Interior South</a>
+
+				
+	</P>
+	</div>
+	<div>
+	<P>Horses<br />
+		<a href="http://10.0.1.41">Stall Exterior North</a> |  
+		<a href="http://10.0.1.42">Stall Interior</a><br />
+		<a href="http://10.0.1.44">Stall Exterior East</a> | 
+		<a href="http://10.0.1.46">Paddock</a>
+				
+	</P>
+	</div>
+	<div>
+	<P>Misc<br />
+		<a href="http://10.0.1.32">Garage</a> | 
+		<a href="http://10.0.1.38">Basement</a>
+				
+	</P>
+	</div>
+</div>
+
+<div id="fourcolumns">
+	<div>Driveway<br>
+		<div id="twocolumns">
+			<div>
+				<a href="http://10.0.1.40">Gate</a><br />
+				<a href="http://10.0.1.35">South</a> 
+			</div>
+			<div>
+				<a href="http://10.0.1.31">Northwest</a><br />
+				<a href="http://10.0.1.43">SouthWest</a> 
+			</div>
+		</div>
+	</div>
+	<div>
+	<P>Barn<br />
+		<a href="http://10.0.1.33">Exterior East</a> | 		<a href="http://10.0.1.36">Exterior Ducks</a><br/>
+		<a href="http://10.0.1.34">Exterior South</a> | <a href="http://10.0.1.37">Interior North</a><br>
+		<a href="http://10.0.1.45">Exterior North</a> | 
+
+
+		<a href="http://10.0.1.39">Interior South</a>
+
+				
+	</P>
+	</div>
+	<div>
+	<P>Horses<br />
+		<a href="http://10.0.1.41">Stall Exterior North</a> |  
+		<a href="http://10.0.1.42">Stall Interior</a><br />
+		<a href="http://10.0.1.44">Stall Exterior East</a> | 
+		<a href="http://10.0.1.46">Paddock</a>
+				
+	</P>
+	</div>
+	<div>
+	<P>Misc<br />
+		<a href="http://10.0.1.32">Garage</a> | 
+		<a href="http://10.0.1.38">Basement</a>
+				
+	</P>
+	</div>
+</div>
+</body>
+</html>
