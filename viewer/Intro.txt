@@ -1,0 +1,5 @@
+Allows adding a BlueIris viewer to WordPress.
+
+Various options can be defined.
+
+There is also a shortcode available which can run the plugin if added to a page: [opal_eye_cameras]

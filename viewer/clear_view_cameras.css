@@ -1,0 +1,240 @@
+/*
+Name: seeing_eye.css
+Version: 0.9b
+Author: Steve Talley (steve@talleyservices.com)
+Website: TalleyServices.com
+
+Description: This is the main CSS file for the viewer.
+*/
+
+body
+{
+	font-family: 'Lato', sans-serif;
+	color: #e8e8e8;
+	font-size: 1.1em;
+	/*text-align: center;*/
+	margin:0px;
+	background-color: #292929;
+}
+
+a {
+ text-decoration: none;
+ /*color: #D46565;*/
+ color: #d6d6d6;
+}
+
+
+
+#outerViewportWrapper{
+	width:100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	overflow: hidden;
+}
+
+#cameraViewport {
+	background-color: black;
+}
+
+#cameraImg {
+	width:100%;
+	height:auto;
+}
+
+/* Navigation Menu - Background */
+.navigation {
+  /* critical sizing and position styles */
+  width: 100%;
+  height: calc(100% + 15px);
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+	overflow-x: scroll; /* 1 */
+	-webkit-overflow-scrolling: touch; /* 2 */
+	padding:0;
+
+  /* non-critical appearance styles */
+  list-style: none;
+  /*background: #111;*/
+	  background-color: #40647b;
+}
+.selectedItem {
+  background-color: #335267;
+}
+.navigation span{
+	padding: 10px 5px;
+	display:block;
+	background-color: #203a4a;
+}
+.navigation ul {
+
+
+
+}
+/* Navigation Menu - List items */
+.navigation li {
+  /* non-critical appearance styles */
+  width: 200px;
+  /*border-top: 1px solid #111;
+  border-bottom: 1px solid #000;*/
+  /*background: #730000;*/
+	font-size:22px;
+
+}
+
+.navigation li a {
+  /* non-critical appearance styles */
+  display: block;
+  padding: 3px 0 3px 20px;
+  /*background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%);*/
+  color: white;
+  font-size: 18px;
+  text-decoration: none;
+  transition: color 0.2s, background 0.5s;
+
+}
+
+.navigation li a:hover {
+  background-color: #82a3bb;
+}
+
+/* Site Wrapper - Everything that isn't navigation */
+.site-wrap {
+  /* Critical position and size styles */
+  min-height: 100%;
+  min-width: 100%;
+  background-color: #000; /* Needs a background or else the nav will show through */
+  position: relative;
+  top: 0;
+  bottom: 100%;
+  left: 0;
+  z-index: 1;
+	text-align: center;
+}
+
+/* Nav Trigger */
+.nav-trigger {
+  /* critical styles - hide the checkbox input */
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+}
+
+label[for="nav-trigger"] {
+  /* critical positioning styles */
+  position: fixed;
+  left: 15px; top: 15px;
+  z-index: 2;
+	/*opacity: 1;*/
+
+
+  /* non-critical apperance styles */
+	height: 38px;
+	width: 38px;
+	padding: 4px;
+	border-radius: 30px;
+	font-size: 30px;
+  background-color: rgba(25, 25, 25, 0.54);
+  text-align: center;
+  cursor: pointer;
+  /*background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");*/
+  background-size: contain;
+
+}
+label[for="nav-trigger"]:after {
+	position: absolute;
+	top: 4px;
+	left: 6px;
+	font-family: "FontAwesome";
+	content: "\f057";
+	transition: opacity 0.5s ease;
+  -webkit-transition: opacity 0.5s ease;
+	opacity: 0;
+}
+label[for="nav-trigger"]:before {
+	position: absolute;
+	top: 4px;
+	left: 6px;
+	font-family: "FontAwesome";
+	content: "\f013";
+	transition: opacity 0.5s ease;
+  -webkit-transition: opacity 0.5s ease;
+	opacity: 0.7;
+}
+
+/* Make the Magic Happen */
+.nav-trigger + label, .site-wrap {
+  transition: left 0.2s;
+}
+
+.nav-trigger:checked + label {
+  left: 215px;
+}
+
+/*.nav-trigger:checked + label[for="nav-trigger"]:after {
+  content: "\f057";
+}*/
+.nav-trigger:checked + label[for="nav-trigger"]:before {
+	opacity: 0;
+}
+.nav-trigger:checked + label[for="nav-trigger"]:after {
+	opacity: 0.7;
+}
+.nav-trigger:checked ~ .site-wrap {
+  left: 200px;
+  box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
+}
+
+body {
+    /* Without this, the body has excess horizontal scroll when the menu is open */
+  overflow-x: hidden;
+}
+
+/* Additional non-critical styles */
+
+h1, h3, p {
+  /*max-width: 600px;
+  margin: 0 auto 1em;*/
+}
+
+code {
+    /*padding: 2px;
+    background: #ddd;*/
+}
+
+/* Micro reset */
+*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
+/*html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }*/
+
+/*begin media query */
+@media all and (max-width: 600px) {
+	#cameraLinks{
+		/*font-size: 1.2em;
+		width: 85%;
+		margin: 5% 0 5%;*/
+	}
+	#refreshRates{
+		/*width: 75%;*/
+	}
+
+	#cameraOptions {
+		padding: 0 14px;
+	}
+	#cameraOptions a {
+		padding: 10px 4px;
+		font-size: 13px;
+	}
+	#cameraSelection li.hideMobile {
+		display:none;
+	}
+	.selectedButton {
+		color: #233640;
+		background-color: #9ca6ad;
+	}
+	.selectedButton:after {
+		display:none;
+	}
+} /* end @media (max-width: 600px) { */

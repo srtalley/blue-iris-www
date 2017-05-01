@@ -1,32 +1,72 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-<title>Blue Iris</title>
-<head>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-	<meta http-equiv="cache-control" content="max-age=0" />
-	<meta http-equiv="cache-control" content="no-cache" />
-	<meta http-equiv="expires" content="0" />
-	<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-	<meta http-equiv="pragma" content="no-cache" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<style>
-    video {
-       width: 640px;
-       height: 360px;
-    }
-</style>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script type="text/javascript" src="jquery.md5.js"></script>
-<script type="text/javascript" src="jquery.cookie.js"></script>
-<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script> -->
-<script type="text/javascript" src="clear_view_cameras.js"></script>
+<?php
 
-<link href='https://fonts.googleapis.com/css?family=Lato:400,700,900' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="clear_view_cameras.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-<body>
-	<div id="cameraSelection"></div>
+/*
+Plugin Name: Clear View Cameras
+Plugin URI: http://talleyservices.com
+Author URI: http://talleyservices.com
+
+Description: Allows Blue Iris cameras to be used in WordPress
+
+Version: 0.5
+
+*/
+
+// https://www.houselogix.com/docs/blue-iris/BlueIris/server.htm
+
+//Testing / Development ONLY
+//define('WP_DEBUG', true);
+
+//Block direct access to file
+defined( 'ABSPATH' ) or die( 'No access to outsiders' );
+// Enqueue the JavaScripts
+function clear_view_cameras_scripts(){
+  wp_enqueue_style( 'clear_view_cameras-css', plugins_url( '/clear_view_cameras.css', __FILE__ ));
+
+  wp_enqueue_script( 'clear_view_cameras_script-js',  plugins_url( '/clear_view_cameras.js', __FILE__ ), array('jquery'), '', true);
+
+  wp_enqueue_script( 'jquery-md5-js',  plugins_url( '/jquery.md5.js', __FILE__ ), array('jquery'), '', true);
+
+  wp_enqueue_script( 'jquery-cookie-js',  plugins_url( '/jquery.cookie.js', __FILE__ ), array('jquery'), '', true);
+
+
+  wp_localize_script('clear_view_cameras_script', 'clear_view_cameras_script_obj',
+    array(
+      'servername' => 'sol.home',
+      'username' => 'admin',
+    ));
+
+} //end function clear_view_cameras_scripts
+add_action( 'wp_enqueue_scripts', 'clear_view_cameras_scripts');
+//Include the JavaScript
+// include( dirname( __FILE__ ) . '/clear_view_cameras.js');
+
+//Include the admin panel page
+include( dirname( __FILE__ ) . '/clear_view_cameras_admin.php');
+
+
+/* ============================================================================
+	   Shortcodes
+   ============================================================================ */
+
+
+add_shortcode('clear_view_cameras','loadClearViewCameras');
+
+
+/* ============================================================================
+	   Functions
+   ============================================================================ */
+
+// This is the main controller that calls other functions
+
+
+function loadClearViewCameras() {
+
+	// echo "Beginning the CSV Export.";
+	// echo "<br>";
+  //
+	// echo '<img src="http://sol.home/image/dwygate">';
+  ?>
+  <div id="cameraSelection"></div>
 			<ul class="navigation">
 			<li id="cameraLinks" class="nav-heading">
 				<span>Cameras</span>
@@ -73,4 +113,9 @@
 			</div>
 		</div>
 	</div> <!-- site-wrap -->
-</body>
+  <?php
+
+} //end function loadClearViewCameras
+
+
+?>
