@@ -1,60 +1,66 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-<title>Blue Iris</title>
-<head>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-	<meta http-equiv="cache-control" content="max-age=0" />
-	<meta http-equiv="cache-control" content="no-cache" />
-	<meta http-equiv="expires" content="0" />
-	<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-	<meta http-equiv="pragma" content="no-cache" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<style>
-    video {
-       width: 640px;
-       height: 360px;
-    }
-</style>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script type="text/javascript" src="jquery.md5.js"></script>
-<script type="text/javascript" src="jquery.cookie.js"></script>
-<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script> -->
-<script type="text/javascript" src="clear_view_cameras.js"></script>
-
-<link href='https://fonts.googleapis.com/css?family=Lato:400,700,900' rel='stylesheet' type='text/css'>
-<link rel="stylesheet" href="clear_view_cameras.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <body>
+	<head>
+		<title>Blue Iris</title>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<meta http-equiv="cache-control" content="max-age=0" />
+		<meta http-equiv="cache-control" content="no-cache" />
+		<meta http-equiv="expires" content="0" />
+		<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
+		<meta http-equiv="pragma" content="no-cache" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<style>
+			video {
+			width: 640px;
+			height: 360px;
+			}
+		</style>
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script type="text/javascript" src="jquery.md5.js"></script>
+		<script type="text/javascript" src="jquery.cookie.js"></script>
+		<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script> -->
+		<script type="text/javascript" src="clear_view_cameras.js?ver=2018-12-03"></script>
+		<script type="text/javascript" src="apc_snmp.js?ver=2017-08-07a"></script>
+
+		<link href="https://fonts.googleapis.com/css?family=Lato:400,700,900" rel="stylesheet" type="text/css">
+		<link rel="stylesheet" href="clear_view_cameras.css?ver=2018-02-19">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	</head>
+
 	<div id="cameraSelection"></div>
 			<ul class="navigation">
 			<li id="cameraLinks" class="nav-heading">
 				<span>Cameras</span>
 				<ul></ul>
 			</li>
-			<!-- <div class="clear"></div> -->
 			<li id="refreshRates" class="nav-heading">
 				<span>Speed</span>
 				<ul></ul>
 			</li>
-			<!-- <div class="clear"></div> -->
+			<li id="cameraPower" class="nav-heading">
+				<span>Power Control</span>
+				<ul></ul>
+			</li>
 			<li id="directCamLinks" class="nav-heading">
 				<span>Camera Links</span>
 				<ul>
 					<li><a href="http://10.0.1.31" target="_blank" title="user: administrator / password: s3kret">Workshop</a></li>
 					<li><a href="http://10.0.1.32" target="_blank" title="user: administrator / password: s3kret">Garage</a></li>
-					<li><a href="http://10.0.1.34" target="_blank" title="user: administrator / password: s3kret">HouseSide</a></li>
-					<li><a href="http://10.0.1.35" target="_blank" title="user: admin / password: s3kret">BarnRear</a></li>
+					<li><a href="http://10.0.1.34" target="_blank" title="user: administrator / password: s3kret">HouseSide--Propane</a></li>
+					<li><a href="http://10.0.1.35" target="_blank" title="user: admin / password: s3kret">BarnBabyDucks</a></li>
+					<li><a href="http://10.0.1.54" target="_blank" title="user: admin / password: s3kret">BarnRear</a></li>
 					<li><a href="http://10.0.1.36" target="_blank" title="user: admin / password: s3kret">Duck</a></li>
 					<li><a href="http://10.0.1.37" target="_blank" title="user: admin / password: s3kret">Chicken1</a></li>
 					<li><a href="http://10.0.1.38" target="_blank" title="user: admin / password: s3kret">Basement</a></li>
 					<li><a href="http://10.0.1.39" target="_blank" title="user: admin / password: s3kret">Chicken2</a></li>
-					<li><a href="http://10.0.1.40" target="_blank" title="user: admin / password: s3kret">Garden</a></li>
+					<li><a href="http://10.0.1.52" target="_blank" title="user: admin / password: s3kret">Garden</a></li>
 					<li><a href="http://10.0.1.42" target="_blank" title="user: admin / password: s3kret">HorseStallsInt</a></li>
 					<li><a href="http://10.0.1.43" target="_blank" title="user: admin / password: s3kret">ChickenExt</a></li>
-					<li><a href="http://10.0.1.45" target="_blank" title="user: admin / password: s3kret">BarnInt</a></li>
+					<li><a href="http://10.0.1.53" target="_blank" title="user: admin / password: s3kret">BarnInt</a></li>
 					<li><a href="http://10.0.1.46" target="_blank" title="user: admin / password: s3kret">HorseField</a></li>
-					<li><a href="http://10.0.1.47" target="_blank" title="user: admin / password: s3kretcam">Dog</a></li>
+					<li><a href="http://10.0.1.47" target="_blank" title="user: admin / password: s3kretcam">House Side--Dog</a></li>
+					<li><a href="http://10.0.1.40" target="_blank" title="user: admin / password: s3kret">Dog Area</a></li>
 					<li><a href="http://10.0.1.48" target="_blank" title="user: admin / password: s3kret">Driveway</a></li>
 					<li><a href="http://10.0.1.49" target="_blank" title="user: admin / password: s3kretcam">Gate</a></li>
 					<li><a href="http://10.0.1.50" target="_blank" title="user: admin / password: s3kretcam">HorseStallsExt</a></li>
@@ -64,13 +70,14 @@
 			</li>
 		</ul>
 		<input type="checkbox" id="nav-trigger" class="nav-trigger" />
-		<label for="nav-trigger"></i>
-		</label>
+		<label for="nav-trigger"></label>
 		<div class="site-wrap">
 		<div id="outerViewportWrapper">
 			<div id="cameraViewport">
 		    <canvas id="cameraImg" height="640"></canvas>
 			</div>
+			<a href="../ui3.htm" style="font-size: 18px;">Open New Version</a>
 		</div>
+
 	</div> <!-- site-wrap -->
 </body>

@@ -1,8 +1,9 @@
 /*
 Name: clear_view_cameras.js
-Version: 1.0
-Author: Steve Talley (steve@talleyservices.com)
-Website: TalleyServices.com
+Version: 1.2
+Author: Steve Talley (steve@dustysun.com)
+Website: DustySun.com
+Date: 2018-12-03
 
 Description: This is the main JavaScript file that loads the BlueIris
 cameras via Ajax calls.
@@ -124,13 +125,13 @@ function AddZoomListener( zoomEvent )
 		prevOrigY = newOrigY * previousScale;
 
 		// find current location on screen
-    imageX = e.pageX - $(cameraImgTagGlobal).offset().left;
-    imageY = e.pageY - $(cameraImgTagGlobal).offset().top;
+  		 imageX = e.pageX - $(cameraImgTagGlobal).offset().left;
+   		imageY = e.pageY - $(cameraImgTagGlobal).offset().top;
 
 
-	  // find actual location on the image at the current scale
+	 	// find actual location on the image at the current scale
 		newOrigX = imageX / previousScale;
-	  newOrigY = imageY / previousScale;
+		newOrigY = imageY / previousScale;
 
 		//See if the mouse has moved, and if so, update the X origin and translation
 		if((Math.abs(imageX - prevOrigX)>1 || Math.abs(imageY-prevOrigY)>1) && previousScale < 4) {
@@ -574,9 +575,10 @@ function BeginCameraStream( cameraServer, cameraSelection, displayRefreshMS, bcs
 		var cameraImageContext = cameraImage.getContext('2d');
 
 		var currentCamImage = new Image();
-		var cameraImageUpdate = currentCamImage.src = blueIrisServerGlobal + "/image/" + selectedCameraGlobal  + '?time=' + Math.random();
+		currentCamImage.src = blueIrisServerGlobal + "/image/" + selectedCameraGlobal  + '?time=' + Math.random();
+		// console.log(currentCamImage.src);
 		currentCamImage.onload = function() {
-			cameraImageContext.drawImage(this, 0,0);
+			cameraImageContext.drawImage(this, 0,0, selectedCameraWidthGlobal, selectedCameraHeightGlobal);
 			UpdateCam_dfd.resolve();
 			$.when(updateCameraPromise).then(function() {
 				refreshImageTimer = setTimeout(function() {
@@ -588,8 +590,8 @@ function BeginCameraStream( cameraServer, cameraSelection, displayRefreshMS, bcs
 		return UpdateCam_dfd.promise();
 	}
 	$( cameraImgTagGlobal ).attr({
-			'width': selectedCameraWidthGlobal + "px",
-			'height': selectedCameraHeightGlobal + "px",
+			'width': selectedCameraWidthGlobal,
+			'height': selectedCameraHeightGlobal,
 		});
 	//Call resize viewport twice to get everything correct
 	ResizeViewport( cameraSelection, bcsCameraArray );
